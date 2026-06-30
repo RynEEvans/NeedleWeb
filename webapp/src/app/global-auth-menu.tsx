@@ -1,10 +1,37 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 export default function GlobalAuthMenu() {
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
+  const router = useRouter();
+
+  async function handleSignOut() {
+    if (signingOut) {
+      return;
+    }
+
+    setSigningOut(true);
+    setOpen(false);
+
+    try {
+      const response = await fetch("/api/auth/logout", {
+        method: "POST",
+        credentials: "same-origin",
+      });
+
+      if (!response.ok) {
+        throw new Error("Sign out failed.");
+      }
+    } finally {
+      router.push("/sign-in");
+      router.refresh();
+      setSigningOut(false);
+    }
+  }
 
   return (
     <div className="fixed left-4 top-4 z-50">
@@ -55,14 +82,14 @@ export default function GlobalAuthMenu() {
             </Link>
 
             <div className="my-1 h-px bg-slate-200" />
-            <form action="/api/auth/logout" method="post" onSubmit={() => setOpen(false)}>
-              <button
-                type="submit"
-                className="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
-              >
-                Sign out
-              </button>
-            </form>
+            <button
+              type="button"
+              onClick={() => void handleSignOut()}
+              disabled={signingOut}
+              className="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-70"
+            >
+              {signingOut ? "Signing out..." : "Sign out"}
+            </button>
           </nav>
         </>
       ) : null}

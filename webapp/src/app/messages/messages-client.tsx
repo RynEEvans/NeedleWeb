@@ -159,10 +159,7 @@ export default function MessagesClient({ role, username, initialWithUsername }: 
       setLoading(true);
       setError(null);
 
-      const endpoint =
-        role === "Admin"
-          ? `/api/messages?with=${encodeURIComponent(activeUsername)}`
-          : "/api/messages";
+      const endpoint = `/api/messages?with=${encodeURIComponent(activeUsername)}`;
 
       try {
         const response = await fetch(endpoint, { cache: "no-store" });
@@ -237,10 +234,7 @@ export default function MessagesClient({ role, username, initialWithUsername }: 
       return;
     }
 
-    const endpoint =
-      role === "Admin"
-        ? `/api/messages?with=${encodeURIComponent(activeUsername)}`
-        : "/api/messages";
+    const endpoint = `/api/messages?with=${encodeURIComponent(activeUsername)}`;
     const response = await fetch(endpoint, { cache: "no-store" });
     const data = await readJsonResponse<{ messages?: MessageRecord[]; error?: string }>(response);
 
@@ -377,6 +371,12 @@ export default function MessagesClient({ role, username, initialWithUsername }: 
           </div>
           {loading ? <p className="text-xs text-slate-500">Refreshing...</p> : null}
         </div>
+
+        {!activeUsername ? (
+          <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">
+            Select a chat target to load messages.
+          </p>
+        ) : null}
 
         <div className="max-h-[52vh] space-y-2 overflow-y-auto rounded-lg bg-slate-50 p-3">
           {messages.length === 0 ? (
