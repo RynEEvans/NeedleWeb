@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   BODY_KEYS,
   CharacterSheet,
@@ -14,6 +15,7 @@ import {
   findCyberwareCatalogEntry,
   getCyberwarePrerequisiteWarnings,
 } from "@/lib/cyberware-data";
+import skillDescriptionsData from "@/lib/skill-descriptions.json";
 
 type MemberProfile = {
   id: number;
@@ -47,6 +49,9 @@ type ParsedHlRule = {
   rollLabel: string | null;
   roll: (() => number) | null;
 };
+
+const SKILL_DESCRIPTIONS =
+  (skillDescriptionsData as { descriptions: Record<string, string> }).descriptions;
 
 function sumDice(diceCount: number, sides: number) {
   return Array.from({ length: diceCount }).reduce<number>(
@@ -353,11 +358,13 @@ function SkillSectionTable({
   items,
   values,
   onChange,
+  onSkillClick,
 }: {
   title: string;
   items: readonly string[];
   values: Record<string, string>;
   onChange: (label: string, value: string) => void;
+  onSkillClick: (label: string) => void;
 }) {
   return (
     <div className="space-y-2">
@@ -367,7 +374,13 @@ function SkillSectionTable({
       <div className="space-y-1.5">
         {items.map((label) => (
           <div key={label} className="flex items-center gap-2 text-[13px] leading-5 text-slate-900">
-            <span className="shrink-0">{label}</span>
+            <button
+              type="button"
+              onClick={() => onSkillClick(label)}
+              className="shrink-0 rounded px-1 text-left underline decoration-dotted underline-offset-2 hover:bg-blue-50 hover:text-blue-900"
+            >
+              {label}
+            </button>
             <span className="flex-1 border-b border-dotted border-slate-400" />
             <input
               type="text"
@@ -435,6 +448,8 @@ export default function MemberProfileForm({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
+  const [activeSkillLabel, setActiveSkillLabel] = useState<string | null>(null);
   const [activeCyberwareNoteText, setActiveCyberwareNoteText] = useState<string | null>(null);
   const [pendingCyberwareHlChoice, setPendingCyberwareHlChoice] = useState<Record<number, boolean>>({});
   const [showSkills, setShowSkills] = useState(false);
@@ -457,6 +472,44 @@ export default function MemberProfileForm({
   const parsedBodyStat = Number.parseInt(sheet.stats.BODY, 10);
   const bodyStat = Number.isFinite(parsedBodyStat) ? parsedBodyStat : undefined;
   const canOverrideReadOnly = canEdit && canEditReadOnlyFields;
+  const activeSkillDescription = activeSkillLabel ? SKILL_DESCRIPTIONS[activeSkillLabel] ?? "No description found for this skill." : null;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!activeSkillLabel && !activeCyberwareNoteText) {
+      return;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setActiveSkillLabel(null);
+        setActiveCyberwareNoteText(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [activeSkillLabel, activeCyberwareNoteText]);
+
+  useEffect(() => {
+    if (!isMounted) {
+      return;
+    }
+
+    const hasOpenModal = Boolean(activeSkillLabel || activeCyberwareNoteText);
+    const previousOverflow = document.body.style.overflow;
+
+    if (hasOpenModal) {
+      document.body.style.overflow = "hidden";
+    }
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isMounted, activeSkillLabel, activeCyberwareNoteText]);
 
   const normalizeHl = (value: string) => (value.trim().length > 0 ? value : "0");
   const parseHl = (value: string) => {
@@ -1917,6 +1970,7 @@ export default function MemberProfileForm({
                     items={section.items}
                     values={sheet.skills}
                     onChange={updateSkill}
+                    onSkillClick={setActiveSkillLabel}
                   />
                 ))}
               </div>
@@ -1999,23 +2053,59 @@ export default function MemberProfileForm({
         </div>
       </form>
 
-      {activeCyberwareNoteText ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-xl rounded-2xl border-2 border-slate-900 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.35)]">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <p className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">Cyberware Notes</p>
-              <button
-                type="button"
-                onClick={() => setActiveCyberwareNoteText(null)}
-                className="rounded-md border border-slate-900 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+      {isMounted && activeSkillLabel
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[999] flex items-center justify-center bg-black/55 p-4"
+              onClick={() => setActiveSkillLabel(null)}
+            >
+              <div
+                className="w-full max-w-xl rounded-2xl border-2 border-slate-900 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.35)]"
+                onClick={(event) => event.stopPropagation()}
               >
-                Close
-              </button>
-            </div>
-            <p className="max-h-[50vh] overflow-y-auto text-sm leading-6 text-slate-800">{activeCyberwareNoteText}</p>
-          </div>
-        </div>
-      ) : null}
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <p className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">{activeSkillLabel}</p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveSkillLabel(null)}
+                    className="rounded-md border border-slate-900 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Close
+                  </button>
+                </div>
+                <p className="max-h-[70vh] overflow-y-auto text-sm leading-6 text-slate-800">{activeSkillDescription}</p>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+
+      {isMounted && activeCyberwareNoteText
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[999] flex items-center justify-center bg-black/55 p-4"
+              onClick={() => setActiveCyberwareNoteText(null)}
+            >
+              <div
+                className="w-full max-w-xl rounded-2xl border-2 border-slate-900 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.35)]"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="mb-2 flex items-center justify-between gap-3">
+                  <p className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">Cyberware Notes</p>
+                  <button
+                    type="button"
+                    onClick={() => setActiveCyberwareNoteText(null)}
+                    className="rounded-md border border-slate-900 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Close
+                  </button>
+                </div>
+                <p className="max-h-[70vh] overflow-y-auto text-sm leading-6 text-slate-800">{activeCyberwareNoteText}</p>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
     </section>
   );
 }

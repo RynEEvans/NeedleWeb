@@ -1,3 +1,5 @@
+import skillsCatalog from "./skills.json";
+
 export const STAT_KEYS = [
   "INT",
   "REF",
@@ -28,101 +30,25 @@ export const DEFAULT_CYBERWARE_TYPES = [
   "Borgware",
 ] as const;
 
-export const SKILL_SECTIONS = [
-  {
-    title: "Awareness",
-    items: [
-      "Concentration",
-      "Conceal/Reveal Object",
-      "Lip Reading",
-      "Perception",
-      "Tracking",
-    ],
-  },
-  {
-    title: "Body",
-    items: [
-      "Athletics",
-      "Contortionist",
-      "Dance",
-      "Endurance",
-      "Resist Torture/Drugs",
-      "Stealth",
-    ],
-  },
-  {
-    title: "Control",
-    items: ["Drive Land Vehicle", "Pilot Air Vehicle", "Pilot Sea Vehicle", "Riding"],
-  },
-  {
-    title: "Education",
-    items: [
-      "Accounting",
-      "Anthropology",
-      "Animal Handling",
-      "Bureaucracy",
-      "Business",
-      "Composition",
-      "Criminology",
-      "Cryptography",
-      "Deduction",
-      "Education",
-      "Gamble",
-      "Language",
-      "Library Search",
-      "Local Expert",
-      "Science",
-      "Tactics",
-      "Wilderness Survival",
-    ],
-  },
-  {
-    title: "Fighting",
-    items: ["Brawling", "Evasion", "Martial Arts", "Melee Weapon"],
-  },
-  {
-    title: "Performance",
-    items: ["Acting", "Instrument"],
-  },
-  {
-    title: "Ranged Weapon",
-    items: ["Archery", "Autofire", "Handgun", "Heavy Weapons", "Shoulder Arms"],
-  },
-  {
-    title: "Social",
-    items: [
-      "Bribery",
-      "Conversation",
-      "Human Perception",
-      "Interrogation",
-      "Persuasion",
-      "Personal Grooming",
-      "Streetwise",
-      "Trading",
-      "Wardrobe & Style",
-    ],
-  },
-  {
-    title: "Technique",
-    items: [
-      "Air Vehicle Tech",
-      "Basic Tech",
-      "Cybertech",
-      "Demolitions",
-      "Electronics/Security Tech",
-      "First Aid",
-      "Forgery",
-      "Land Vehicle Tech",
-      "Paint/Draw/Sculpt",
-      "Paramedic",
-      "Photography/Film",
-      "Pick Lock",
-      "Pick Pocket",
-      "Sea Vehicle Tech",
-      "Weaponstech",
-    ],
-  },
-] as const;
+type SkillCatalog = {
+  sections: Array<{
+    title: string;
+    skills: Array<{
+      name: string;
+      stat: string;
+      multiplier: number;
+    }>;
+  }>;
+};
+
+const skillCatalog = skillsCatalog as SkillCatalog;
+
+export const SKILL_SECTIONS: Array<{ title: string; items: string[] }> = skillCatalog.sections.map(
+  (section) => ({
+    title: section.title,
+    items: section.skills.map((skill) => skill.name),
+  }),
+);
 
 export const DEFAULT_WEAPONS_ARMOR_ROW_COUNT = 8;
 export const DEFAULT_CYBERNETIC_ROW_COUNT = 10;

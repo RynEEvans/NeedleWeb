@@ -75,6 +75,23 @@ export default async function Home() {
               </p>
             </div>
 
+            {claims ? (
+              <div className="flex flex-wrap items-center gap-3">
+                <a
+                  href="/skills"
+                  className="rounded-full border border-blue-900/20 bg-white px-5 py-2.5 text-sm font-semibold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50"
+                >
+                  Skills
+                </a>
+                <a
+                  href="/cyberware"
+                  className="rounded-full border border-blue-900/20 bg-white px-5 py-2.5 text-sm font-semibold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50"
+                >
+                  Cyberware
+                </a>
+              </div>
+            ) : null}
+
           </div>
 
           <aside className="rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.82)] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-md">

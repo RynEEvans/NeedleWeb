@@ -1,0 +1,117 @@
+{
+  "source": "Reference-Skills.pdf",
+  "sections": [
+    {
+      "title": "Awareness",
+      "skills": [
+        { "name": "Concentration", "stat": "WILL", "multiplier": 1 },
+        { "name": "Conceal/Reveal Object", "stat": "INT", "multiplier": 1 },
+        { "name": "Lip Reading", "stat": "INT", "multiplier": 1 },
+        { "name": "Perception", "stat": "INT", "multiplier": 1 },
+        { "name": "Tracking", "stat": "INT", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Body",
+      "skills": [
+        { "name": "Athletics", "stat": "DEX", "multiplier": 1 },
+        { "name": "Contortionist", "stat": "DEX", "multiplier": 1 },
+        { "name": "Dance", "stat": "DEX", "multiplier": 1 },
+        { "name": "Endurance", "stat": "WILL", "multiplier": 1 },
+        { "name": "Resist Torture/Drugs", "stat": "WILL", "multiplier": 1 },
+        { "name": "Stealth", "stat": "DEX", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Control",
+      "skills": [
+        { "name": "Drive Land Vehicle", "stat": "REF", "multiplier": 1 },
+        { "name": "Pilot Air Vehicle", "stat": "REF", "multiplier": 2 },
+        { "name": "Pilot Sea Vehicle", "stat": "REF", "multiplier": 1 },
+        { "name": "Riding", "stat": "REF", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Education",
+      "skills": [
+        { "name": "Accounting", "stat": "INT", "multiplier": 1 },
+        { "name": "Anthropology", "stat": "INT", "multiplier": 1 },
+        { "name": "Animal Handling", "stat": "INT", "multiplier": 1 },
+        { "name": "Bureaucracy", "stat": "INT", "multiplier": 1 },
+        { "name": "Business", "stat": "INT", "multiplier": 1 },
+        { "name": "Composition", "stat": "INT", "multiplier": 1 },
+        { "name": "Criminology", "stat": "INT", "multiplier": 1 },
+        { "name": "Cryptography", "stat": "INT", "multiplier": 1 },
+        { "name": "Deduction", "stat": "INT", "multiplier": 1 },
+        { "name": "Education", "stat": "INT", "multiplier": 1 },
+        { "name": "Gamble", "stat": "INT", "multiplier": 1 },
+        { "name": "Language", "stat": "INT", "multiplier": 2 },
+        { "name": "Library Search", "stat": "INT", "multiplier": 1 },
+        { "name": "Local Expert", "stat": "INT", "multiplier": 2 },
+        { "name": "Science", "stat": "INT", "multiplier": 2 },
+        { "name": "Tactics", "stat": "INT", "multiplier": 1 },
+        { "name": "Wilderness Survival", "stat": "INT", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Fighting",
+      "skills": [
+        { "name": "Brawling", "stat": "DEX", "multiplier": 1 },
+        { "name": "Evasion", "stat": "DEX", "multiplier": 1 },
+        { "name": "Martial Arts", "stat": "DEX", "multiplier": 2 },
+        { "name": "Melee Weapon", "stat": "DEX", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Performance",
+      "skills": [
+        { "name": "Acting", "stat": "COOL", "multiplier": 1 },
+        { "name": "Instrument", "stat": "TECH", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Ranged Weapon",
+      "skills": [
+        { "name": "Archery", "stat": "REF", "multiplier": 1 },
+        { "name": "Autofire", "stat": "REF", "multiplier": 2 },
+        { "name": "Handgun", "stat": "REF", "multiplier": 1 },
+        { "name": "Heavy Weapons", "stat": "REF", "multiplier": 2 },
+        { "name": "Shoulder Arms", "stat": "REF", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Social",
+      "skills": [
+        { "name": "Bribery", "stat": "COOL", "multiplier": 1 },
+        { "name": "Conversation", "stat": "EMP", "multiplier": 1 },
+        { "name": "Human Perception", "stat": "EMP", "multiplier": 1 },
+        { "name": "Interrogation", "stat": "COOL", "multiplier": 1 },
+        { "name": "Persuasion", "stat": "COOL", "multiplier": 1 },
+        { "name": "Personal Grooming", "stat": "COOL", "multiplier": 1 },
+        { "name": "Streetwise", "stat": "COOL", "multiplier": 1 },
+        { "name": "Trading", "stat": "COOL", "multiplier": 1 },
+        { "name": "Wardrobe & Style", "stat": "COOL", "multiplier": 1 }
+      ]
+    },
+    {
+      "title": "Technique",
+      "skills": [
+        { "name": "Air Vehicle Tech", "stat": "TECH", "multiplier": 1 },
+        { "name": "Basic Tech", "stat": "TECH", "multiplier": 1 },
+        { "name": "Cybertech", "stat": "TECH", "multiplier": 1 },
+        { "name": "Demolitions", "stat": "TECH", "multiplier": 2 },
+        { "name": "Electronics/Security Tech", "stat": "TECH", "multiplier": 2 },
+        { "name": "First Aid", "stat": "TECH", "multiplier": 1 },
+        { "name": "Forgery", "stat": "TECH", "multiplier": 1 },
+        { "name": "Land Vehicle Tech", "stat": "TECH", "multiplier": 1 },
+        { "name": "Paint/Draw/Sculpt", "stat": "TECH", "multiplier": 1 },
+        { "name": "Paramedic", "stat": "TECH", "multiplier": 2 },
+        { "name": "Photography/Film", "stat": "TECH", "multiplier": 1 },
+        { "name": "Pick Lock", "stat": "TECH", "multiplier": 1 },
+        { "name": "Pick Pocket", "stat": "TECH", "multiplier": 1 },
+        { "name": "Sea Vehicle Tech", "stat": "TECH", "multiplier": 1 },
+        { "name": "Weaponstech", "stat": "TECH", "multiplier": 1 }
+      ]
+    }
+  ]
+}
