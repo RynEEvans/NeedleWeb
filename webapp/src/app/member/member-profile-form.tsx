@@ -32,6 +32,8 @@ type Props = {
   title?: string;
   subtitle?: string;
   submitLabel?: string;
+  canEdit?: boolean;
+  canEditReadOnlyFields?: boolean;
 };
 
 type UpdateResponse = {
@@ -426,6 +428,8 @@ export default function MemberProfileForm({
   title = "Player Character Sheet",
   subtitle = "Reference sheet layout for a member character.",
   submitLabel = "Save sheet",
+  canEdit = true,
+  canEditReadOnlyFields = false,
 }: Props) {
   const [sheet, setSheet] = useState<CharacterSheet>(() => makeInitialSheet(initialUser.sheet));
   const [saving, setSaving] = useState(false);
@@ -452,6 +456,7 @@ export default function MemberProfileForm({
   const installedCyberwareNames = sheet.cyberwareRows.map((row) => row.name);
   const parsedBodyStat = Number.parseInt(sheet.stats.BODY, 10);
   const bodyStat = Number.isFinite(parsedBodyStat) ? parsedBodyStat : undefined;
+  const canOverrideReadOnly = canEdit && canEditReadOnlyFields;
 
   const normalizeHl = (value: string) => (value.trim().length > 0 ? value : "0");
   const parseHl = (value: string) => {
@@ -528,6 +533,10 @@ export default function MemberProfileForm({
   }
 
   function updateStat(statKey: (typeof STAT_KEYS)[number], value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       stats: {
@@ -538,6 +547,10 @@ export default function MemberProfileForm({
   }
 
   function updateCombat(field: keyof CharacterSheet["combat"], value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       combat: {
@@ -548,6 +561,10 @@ export default function MemberProfileForm({
   }
 
   function updateBody(bodyKey: (typeof BODY_KEYS)[number], value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       combat: {
@@ -561,6 +578,10 @@ export default function MemberProfileForm({
   }
 
   function updateWeaponRow(index: number, field: keyof CharacterSheet["weaponRows"][number], value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       weaponRows: current.weaponRows.map((row, rowIndex) =>
@@ -570,6 +591,10 @@ export default function MemberProfileForm({
   }
 
   function updateArmorRow(index: number, field: keyof CharacterSheet["armorRows"][number], value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       armorRows: current.armorRows.map((row, rowIndex) =>
@@ -579,6 +604,10 @@ export default function MemberProfileForm({
   }
 
   function addWeaponRow() {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       weaponRows: [...current.weaponRows, createEmptyWeaponRow()],
@@ -586,6 +615,10 @@ export default function MemberProfileForm({
   }
 
   function removeWeaponRow() {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => {
       if (current.weaponRows.length <= 1) {
         return current;
@@ -599,6 +632,10 @@ export default function MemberProfileForm({
   }
 
   function addArmorRow() {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       armorRows: [...current.armorRows, createEmptyArmorRow()],
@@ -606,6 +643,10 @@ export default function MemberProfileForm({
   }
 
   function removeArmorRow() {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => {
       if (current.armorRows.length <= 1) {
         return current;
@@ -623,7 +664,21 @@ export default function MemberProfileForm({
     field: keyof CharacterSheet["cyberwareTypeRows"][number],
     value: string,
   ) {
-    if (field === "hl" || field === "optionSlots") {
+    if (!canEdit) {
+      return;
+    }
+
+    if ((field === "hl" || field === "optionSlots") && !canOverrideReadOnly) {
+      return;
+    }
+
+    if (canOverrideReadOnly && (field === "hl" || field === "optionSlots")) {
+      setSheet((current) => ({
+        ...current,
+        cyberwareTypeRows: current.cyberwareTypeRows.map((row, rowIndex) =>
+          rowIndex === index ? { ...row, [field]: value } : row,
+        ),
+      }));
       return;
     }
 
@@ -642,6 +697,10 @@ export default function MemberProfileForm({
     field: keyof CharacterSheet["cyberwareRows"][number],
     value: string,
   ) {
+    if (!canEdit) {
+      return;
+    }
+
     if (field === "name") {
       setActiveCyberwareNoteText(null);
     }
@@ -675,6 +734,10 @@ export default function MemberProfileForm({
   }
 
   function applyCyberwareHlChoice(index: number, mode: "default" | "roll") {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => {
       const row = current.cyberwareRows[index];
       if (!row) {
@@ -714,6 +777,10 @@ export default function MemberProfileForm({
   }
 
   function addCyberwareRow() {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) =>
       recalculateCyberwareHl({
         ...current,
@@ -723,6 +790,10 @@ export default function MemberProfileForm({
   }
 
   function removeCyberwareRow() {
+    if (!canEdit) {
+      return;
+    }
+
     setActiveCyberwareNoteText(null);
     setPendingCyberwareHlChoice({});
 
@@ -761,6 +832,10 @@ export default function MemberProfileForm({
     checked: boolean,
     currentFoundationValue: string,
   ) {
+    if (!canEdit) {
+      return;
+    }
+
     const selections = parseFoundationSelections(currentFoundationValue);
     if (checked) {
       selections.add(foundationKey);
@@ -775,6 +850,10 @@ export default function MemberProfileForm({
     field: keyof CharacterSheet["humanityTrack"],
     value: string,
   ) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       humanityTrack: {
@@ -785,6 +864,10 @@ export default function MemberProfileForm({
   }
 
   function updateEconomy(field: keyof CharacterSheet["economy"], value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       economy: {
@@ -795,6 +878,10 @@ export default function MemberProfileForm({
   }
 
   function updateSkill(label: string, value: string) {
+    if (!canEdit) {
+      return;
+    }
+
     setSheet((current) => ({
       ...current,
       skills: {
@@ -858,10 +945,18 @@ export default function MemberProfileForm({
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (!canEdit) {
+      return;
+    }
+
     await saveSheetRef.current(sheet);
   }
 
   useEffect(() => {
+    if (!canEdit) {
+      return;
+    }
+
     const serializedSheet = JSON.stringify(sheet);
     if (serializedSheet === lastSavedSheetRef.current) {
       return;
@@ -870,7 +965,7 @@ export default function MemberProfileForm({
     setSuccess(null);
 
     void saveSheetRef.current(sheet);
-  }, [sheet]);
+  }, [canEdit, sheet]);
 
   useEffect(() => {
     lastSavedSheetRef.current = JSON.stringify(makeInitialSheet(initialUser.sheet));
@@ -905,7 +1000,13 @@ export default function MemberProfileForm({
             <input
               type="text"
               value={sheet.handle}
-              onChange={(event) => setSheet((current) => ({ ...current, handle: event.target.value }))}
+              onChange={(event) => {
+                if (!canEdit) {
+                  return;
+                }
+
+                setSheet((current) => ({ ...current, handle: event.target.value }));
+              }}
                 className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-blue-700"
               placeholder="Handle"
             />
@@ -917,9 +1018,13 @@ export default function MemberProfileForm({
             </span>
             <textarea
               value={sheet.description}
-              onChange={(event) =>
-                setSheet((current) => ({ ...current, description: event.target.value }))
-              }
+              onChange={(event) => {
+                if (!canEdit) {
+                  return;
+                }
+
+                setSheet((current) => ({ ...current, description: event.target.value }));
+              }}
               rows={4}
               className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-blue-700"
               placeholder="Description"
@@ -1063,7 +1168,7 @@ export default function MemberProfileForm({
                         >
                           {showLoadoutSections.weapons ? "Hide" : "Show"}
                         </button>
-                        {showLoadoutSections.weapons ? (
+                        {canEdit && showLoadoutSections.weapons ? (
                           <>
                             <button
                               type="button"
@@ -1180,8 +1285,22 @@ export default function MemberProfileForm({
                       </div>
                       {sheet.cyberwareTypeRows.map((row, index) => (
                         <div key={index} className="grid grid-cols-[1.6fr_0.8fr_0.8fr_0.6fr] gap-2">
-                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.name} readOnly aria-readonly="true" tabIndex={-1} />
-                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.optionSlots} readOnly aria-readonly="true" tabIndex={-1} />
+                          <input
+                            className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
+                            value={row.name}
+                            onChange={(event) => updateCyberwareTypeRow(index, "name", event.target.value)}
+                            readOnly={!canOverrideReadOnly}
+                            aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                            tabIndex={canOverrideReadOnly ? 0 : -1}
+                          />
+                          <input
+                            className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
+                            value={row.optionSlots}
+                            onChange={(event) => updateCyberwareTypeRow(index, "optionSlots", event.target.value)}
+                            readOnly={!canOverrideReadOnly}
+                            aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                            tabIndex={canOverrideReadOnly ? 0 : -1}
+                          />
                           {row.name.trim().toLowerCase() === "cyberlimbs" ? (
                             <div className="min-h-9 rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-700">
                               <div className="flex items-center justify-between gap-2">
@@ -1261,7 +1380,14 @@ export default function MemberProfileForm({
                               />
                             </label>
                           )}
-                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.hl} readOnly aria-readonly="true" tabIndex={-1} />
+                          <input
+                            className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
+                            value={row.hl}
+                            onChange={(event) => updateCyberwareTypeRow(index, "hl", event.target.value)}
+                            readOnly={!canOverrideReadOnly}
+                            aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                            tabIndex={canOverrideReadOnly ? 0 : -1}
+                          />
                         </div>
                       ))}
                     </div>
@@ -1281,7 +1407,7 @@ export default function MemberProfileForm({
                         >
                           {showLoadoutSections.cyberwareName ? "Hide" : "Show"}
                         </button>
-                        {showLoadoutSections.cyberwareName ? (
+                        {canEdit && showLoadoutSections.cyberwareName ? (
                           <>
                             <button
                               type="button"
@@ -1340,11 +1466,12 @@ export default function MemberProfileForm({
                             <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Type
                               <input
-                                className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm"
+                                className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
                                 value={row.type}
-                                readOnly
-                                aria-readonly="true"
-                                tabIndex={-1}
+                                onChange={(event) => updateCyberwareRow(index, "type", event.target.value)}
+                                readOnly={!canOverrideReadOnly}
+                                aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                                tabIndex={canOverrideReadOnly ? 0 : -1}
                               />
                             </label>
                             <div>
@@ -1366,11 +1493,12 @@ export default function MemberProfileForm({
                                 </div>
                               ) : (
                                 <input
-                                  className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm"
+                                  className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
                                   value={row.notes}
-                                  readOnly
-                                  aria-readonly="true"
-                                  tabIndex={-1}
+                                  onChange={(event) => updateCyberwareRow(index, "notes", event.target.value)}
+                                  readOnly={!canOverrideReadOnly}
+                                  aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                                  tabIndex={canOverrideReadOnly ? 0 : -1}
                                 />
                               )}
                             </div>
@@ -1394,11 +1522,12 @@ export default function MemberProfileForm({
                                 </select>
                               ) : (
                                 <input
-                                  className={`mt-1 h-10 w-full min-w-0 rounded-md border px-3 py-2 ${getHlTextSizeClass(row.hl)} border-slate-900 bg-slate-50`}
+                                  className={`mt-1 h-10 w-full min-w-0 rounded-md border px-3 py-2 ${getHlTextSizeClass(row.hl)} border-slate-900 ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
                                   value={row.hl}
-                                  readOnly
-                                  aria-readonly="true"
-                                  tabIndex={-1}
+                                  onChange={(event) => updateCyberwareRow(index, "hl", event.target.value)}
+                                  readOnly={!canOverrideReadOnly}
+                                  aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                                  tabIndex={canOverrideReadOnly ? 0 : -1}
                                 />
                               )}
                             </div>
@@ -1445,11 +1574,12 @@ export default function MemberProfileForm({
                             <input list="cyberware-name-options" autoComplete="off" className={`h-full min-w-0 rounded-md border px-2 py-1 text-sm ${!isValidCyberwareName(row.name) ? "border-red-600" : hasUnmetPrerequisites ? "border-amber-600" : "border-slate-900"}`} value={row.name} onChange={(event) => updateCyberwareRow(index, "name", event.target.value)} />
                           </div>
                           <input
-                            className="h-9 min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm"
+                            className={`h-9 min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
                             value={row.type}
-                            readOnly
-                            aria-readonly="true"
-                            tabIndex={-1}
+                            onChange={(event) => updateCyberwareRow(index, "type", event.target.value)}
+                            readOnly={!canOverrideReadOnly}
+                            aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                            tabIndex={canOverrideReadOnly ? 0 : -1}
                           />
                           {matchedCyberwareEntry ? (
                             <div className="flex h-9 min-w-0 items-center gap-2 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm">
@@ -1468,11 +1598,12 @@ export default function MemberProfileForm({
                             </div>
                           ) : (
                             <input
-                              className="h-9 min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm"
+                              className={`h-9 min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
                               value={row.notes}
-                              readOnly
-                              aria-readonly="true"
-                              tabIndex={-1}
+                              onChange={(event) => updateCyberwareRow(index, "notes", event.target.value)}
+                              readOnly={!canOverrideReadOnly}
+                              aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                              tabIndex={canOverrideReadOnly ? 0 : -1}
                             />
                           )}
                           {showHlChooser && matchedHlRule ? (
@@ -1490,7 +1621,14 @@ export default function MemberProfileForm({
                               {matchedHlRule.rollLabel ? <option value="roll">Roll ({matchedHlRule.rollLabel})</option> : null}
                             </select>
                           ) : (
-                            <input className={`h-9 min-w-0 rounded-md border px-2 py-1 ${getHlTextSizeClass(row.hl)} border-slate-900 bg-slate-50`} value={row.hl} readOnly aria-readonly="true" tabIndex={-1} />
+                            <input
+                              className={`h-9 min-w-0 rounded-md border px-2 py-1 ${getHlTextSizeClass(row.hl)} border-slate-900 ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
+                              value={row.hl}
+                              onChange={(event) => updateCyberwareRow(index, "hl", event.target.value)}
+                              readOnly={!canOverrideReadOnly}
+                              aria-readonly={!canOverrideReadOnly ? "true" : "false"}
+                              tabIndex={canOverrideReadOnly ? 0 : -1}
+                            />
                           )}
                           {hasUnmetPrerequisites ? (
                             <div className="col-span-4 mt-1 rounded-md border border-amber-500/60 bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
@@ -1519,7 +1657,7 @@ export default function MemberProfileForm({
                         >
                           {showLoadoutSections.armor ? "Hide" : "Show"}
                         </button>
-                        {showLoadoutSections.armor ? (
+                        {canEdit && showLoadoutSections.armor ? (
                           <>
                             <button
                               type="button"
@@ -1605,7 +1743,13 @@ export default function MemberProfileForm({
                     {showLoadoutSections.gear ? (
                     <textarea
                       value={sheet.gear}
-                      onChange={(event) => setSheet((current) => ({ ...current, gear: event.target.value }))}
+                      onChange={(event) => {
+                        if (!canEdit) {
+                          return;
+                        }
+
+                        setSheet((current) => ({ ...current, gear: event.target.value }));
+                      }}
                       rows={16}
                       className="min-h-[20rem] w-full rounded-md border border-slate-900 px-3 py-2 text-sm outline-none focus:border-blue-700"
                       placeholder="Gear and carried items"
@@ -1680,13 +1824,25 @@ export default function MemberProfileForm({
                 <SheetInput
                   label="Rep"
                   value={sheet.rep}
-                  onChange={(value) => setSheet((current) => ({ ...current, rep: value }))}
+                  onChange={(value) => {
+                    if (!canEdit) {
+                      return;
+                    }
+
+                    setSheet((current) => ({ ...current, rep: value }));
+                  }}
                   placeholder="0"
                 />
                 <SheetInput
                   label="Current IP"
                   value={sheet.currentIp}
-                  onChange={(value) => setSheet((current) => ({ ...current, currentIp: value }))}
+                  onChange={(value) => {
+                    if (!canEdit) {
+                      return;
+                    }
+
+                    setSheet((current) => ({ ...current, currentIp: value }));
+                  }}
                   placeholder="0"
                 />
               </div>
@@ -1701,9 +1857,13 @@ export default function MemberProfileForm({
               <SheetTextarea
                 label="Notes / goals"
                 value={sheet.description}
-                onChange={(value) =>
-                  setSheet((current) => ({ ...current, description: value }))
-                }
+                onChange={(value) => {
+                  if (!canEdit) {
+                    return;
+                  }
+
+                  setSheet((current) => ({ ...current, description: value }));
+                }}
                 rows={8}
                 placeholder="Goals, bonds, or campaign notes"
               />
@@ -1713,16 +1873,21 @@ export default function MemberProfileForm({
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
         {success ? <p className="text-sm text-blue-800">{success}</p> : null}
+        {!canEdit ? <p className="text-sm text-slate-600">Read-only view. Sign in as Admin to edit this sheet.</p> : null}
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
-            type="submit"
-            disabled={saving}
-            className="rounded-xl bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
-          >
-            {saving ? "Saving..." : submitLabel}
-          </button>
-          <p className="text-sm text-[var(--muted)]">Changes save to the member profile API.</p>
+          {canEdit ? (
+            <>
+              <button
+                type="submit"
+                disabled={saving}
+                className="rounded-xl bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
+              >
+                {saving ? "Saving..." : submitLabel}
+              </button>
+              <p className="text-sm text-[var(--muted)]">Changes save to the member profile API.</p>
+            </>
+          ) : null}
         </div>
       </form>
 

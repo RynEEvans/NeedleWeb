@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "username": "test",
+    "email": "doesthismatter@doesitmatter",
+    "password": "noitdoesnt",
+    "message": "hi",
+    "requestedAt": "2026-06-30T06:03:03.511Z",
+    "status": "Rejected",
+    "rejectedBy": "ryanevans",
+    "rejectedAt": "2026-06-30T06:03:31.403Z"
+  },
+  {
+    "id": 2,
+    "username": "test",
+    "email": "doesntmatter@doesntmatter",
+    "password": "test",
+    "message": "HIIII",
+    "requestedAt": "2026-06-30T06:04:16.246Z",
+    "status": "Pending"
+  }
+]

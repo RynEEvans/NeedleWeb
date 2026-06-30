@@ -31,16 +31,21 @@ export default function Home() {
             <p className="text-sm font-semibold uppercase tracking-[0.35em] text-blue-900">
               NEEDLES TTRPG
             </p>
-            <p className="text-sm text-[var(--muted)]">
-              NEEDLES TTRPG is a Frankensteined TTRPG from some of the TTRPGs I read and liked.
-            </p>
           </div>
-          <a
-            href="/sign-in"
-            className="rounded-full border border-blue-900/20 bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
-          >
-            Log in
-          </a>
+          <div className="flex items-center gap-2">
+            <a
+              href="/sign-up"
+              className="rounded-full border border-blue-900/20 bg-white px-4 py-2 text-sm font-semibold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50"
+            >
+              Sign up
+            </a>
+            <a
+              href="/sign-in"
+              className="rounded-full border border-blue-900/20 bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:text-white"
+            >
+              Log in
+            </a>
+          </div>
         </header>
 
         <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
