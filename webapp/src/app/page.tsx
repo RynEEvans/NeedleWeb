@@ -1,3 +1,6 @@
+import { cookies } from "next/headers";
+import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
+
 const features = [
   {
     title: "You are a NEEDLE!",
@@ -16,7 +19,11 @@ const features = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const claims = readSessionClaims(token);
+
   return (
     <main className="relative flex min-h-screen overflow-hidden px-6 py-8 text-slate-950 sm:px-10 lg:px-12">
       <div className="absolute inset-0 -z-10 opacity-80">
@@ -32,20 +39,26 @@ export default function Home() {
               NEEDLES TTRPG
             </p>
           </div>
-          <div className="flex items-center gap-2">
-            <a
-              href="/sign-up"
-              className="rounded-full border border-blue-900/20 bg-white px-4 py-2 text-sm font-semibold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50"
-            >
-              Sign up
-            </a>
-            <a
-              href="/sign-in"
-              className="rounded-full border border-blue-900/20 bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:text-white"
-            >
-              Log in
-            </a>
-          </div>
+          {claims ? (
+            <div className="rounded-full border border-blue-900/20 bg-white px-4 py-2 text-sm font-semibold text-blue-900">
+              {claims.username}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <a
+                href="/sign-up"
+                className="rounded-full border border-blue-900/20 bg-white px-4 py-2 text-sm font-semibold text-blue-900 transition hover:-translate-y-0.5 hover:bg-blue-50"
+              >
+                Sign up
+              </a>
+              <a
+                href="/sign-in"
+                className="rounded-full border border-blue-900/20 bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700 hover:text-white"
+              >
+                Log in
+              </a>
+            </div>
+          )}
         </header>
 
         <section className="grid flex-1 items-center gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
