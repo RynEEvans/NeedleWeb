@@ -16,6 +16,7 @@ import {
   getCyberwarePrerequisiteWarnings,
 } from "@/lib/cyberware-data";
 import skillDescriptionsData from "@/lib/skill-descriptions.json";
+import weaponsCatalogData from "@/lib/weapons.json";
 
 type MemberProfile = {
   id: number;
@@ -52,6 +53,130 @@ type ParsedHlRule = {
 
 const SKILL_DESCRIPTIONS =
   (skillDescriptionsData as { descriptions: Record<string, string> }).descriptions;
+
+const WEAPONS_CATALOG = weaponsCatalogData as {
+  melee: Array<{
+    weaponType: string;
+    examples: string[];
+    handsRequired: string;
+    damage: string;
+    rof: number;
+    canBeConcealed: boolean;
+    cost: string;
+    priceCategory: string;
+  }>;
+  ranged: Array<{
+    weaponType: string;
+    weaponSkill: string;
+    singleShotDamage: string;
+    standardMagazine: string;
+    rof: number;
+    handsRequired: number;
+    canBeConcealed: boolean;
+    cost: string;
+    priceCategory: string;
+    specialFeatures: string[];
+  }>;
+};
+
+type InventoryCatalogOption = {
+  name: string;
+  source: "Cyberware" | "Weapons";
+  description: string;
+};
+
+type WeaponEquipPreset = {
+  name: string;
+  dmg: string;
+  rof: string;
+  hands: string;
+  con: string;
+  mag: string;
+  ammo: string;
+  notes: string;
+};
+
+const WEAPON_EQUIP_PRESETS = new Map<string, WeaponEquipPreset>();
+const CYBERWARE_EQUIP_NAMES = new Set<string>();
+
+const CYBERWARE_INVENTORY_OPTIONS: InventoryCatalogOption[] = CYBERWARE_CATALOG.map((entry) => ({
+  name: entry.name.trim(),
+  source: "Cyberware",
+  description: `${entry.type} | ${entry.cost} | HL ${entry.hl}. ${entry.descriptionData}`,
+}))
+  .filter((option) => option.name.length > 0)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+const WEAPON_INVENTORY_OPTIONS: InventoryCatalogOption[] = [
+  ...WEAPONS_CATALOG.melee.flatMap((weapon) => {
+    const baseDescription = `${weapon.weaponType} | DMG ${weapon.damage} | ROF ${weapon.rof} | Hands ${weapon.handsRequired} | Concealed ${weapon.canBeConcealed ? "Yes" : "No"} | ${weapon.cost} (${weapon.priceCategory})`;
+    WEAPON_EQUIP_PRESETS.set(weapon.weaponType.trim().toLowerCase(), {
+      name: weapon.weaponType.trim(),
+      dmg: weapon.damage,
+      rof: String(weapon.rof),
+      hands: weapon.handsRequired,
+      con: weapon.canBeConcealed ? "Yes" : "No",
+      mag: "N/A",
+      ammo: "N/A",
+      notes: `Cost ${weapon.cost} (${weapon.priceCategory})`,
+    });
+    const baseEntry: InventoryCatalogOption = {
+      name: weapon.weaponType.trim(),
+      source: "Weapons",
+      description: baseDescription,
+    };
+
+    const exampleEntries = weapon.examples.map<InventoryCatalogOption>((example) => {
+      const trimmedExample = example.trim();
+      WEAPON_EQUIP_PRESETS.set(trimmedExample.toLowerCase(), {
+        name: trimmedExample,
+        dmg: weapon.damage,
+        rof: String(weapon.rof),
+        hands: weapon.handsRequired,
+        con: weapon.canBeConcealed ? "Yes" : "No",
+        mag: "N/A",
+        ammo: "N/A",
+        notes: `${weapon.weaponType} | Cost ${weapon.cost} (${weapon.priceCategory})`,
+      });
+
+      return {
+        name: trimmedExample,
+        source: "Weapons",
+        description: `${trimmedExample} (${weapon.weaponType}) | DMG ${weapon.damage} | ROF ${weapon.rof} | Hands ${weapon.handsRequired} | Concealed ${weapon.canBeConcealed ? "Yes" : "No"} | ${weapon.cost} (${weapon.priceCategory})`,
+      };
+    });
+
+    return [baseEntry, ...exampleEntries];
+  }),
+  ...WEAPONS_CATALOG.ranged.map<InventoryCatalogOption>((weapon) => {
+    const trimmedType = weapon.weaponType.trim();
+    WEAPON_EQUIP_PRESETS.set(trimmedType.toLowerCase(), {
+      name: trimmedType,
+      dmg: weapon.singleShotDamage,
+      rof: String(weapon.rof),
+      hands: String(weapon.handsRequired),
+      con: weapon.canBeConcealed ? "Yes" : "No",
+      mag: weapon.standardMagazine,
+      ammo: weapon.standardMagazine,
+      notes: `${weapon.weaponSkill}${weapon.specialFeatures.length > 0 ? ` | ${weapon.specialFeatures.join(", ")}` : ""} | Cost ${weapon.cost} (${weapon.priceCategory})`,
+    });
+
+    return {
+      name: trimmedType,
+      source: "Weapons",
+      description: `${weapon.weaponSkill} | DMG ${weapon.singleShotDamage} | Mag ${weapon.standardMagazine} | ROF ${weapon.rof} | Hands ${weapon.handsRequired} | Concealed ${weapon.canBeConcealed ? "Yes" : "No"} | ${weapon.cost} (${weapon.priceCategory}) | ${weapon.specialFeatures.join(" | ")}`,
+    };
+  }),
+]
+  .filter((option) => option.name.length > 0)
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+for (const entry of CYBERWARE_CATALOG) {
+  const trimmedName = entry.name.trim();
+  if (trimmedName.length > 0) {
+    CYBERWARE_EQUIP_NAMES.add(trimmedName.toLowerCase());
+  }
+}
 
 function sumDice(diceCount: number, sides: number) {
   return Array.from({ length: diceCount }).reduce<number>(
@@ -157,8 +282,103 @@ function createEmptyCyberwareRow(): CharacterSheet["cyberwareRows"][number] {
     name: "",
     type: "",
     notes: "",
-    hl: "0",
+    hl: "",
   };
+}
+
+function buildGearTextFromInventoryItems(items: CharacterSheet["inventoryItems"]) {
+  return items.map((item) => `- ${item.name}`).join("\n");
+}
+
+function isWeaponRowEmpty(row: CharacterSheet["weaponRows"][number]) {
+  return (
+    row.name.trim().length === 0 &&
+    row.dmg.trim().length === 0 &&
+    row.rof.trim().length === 0 &&
+    row.hands.trim().length === 0 &&
+    row.con.trim().length === 0 &&
+    row.mag.trim().length === 0 &&
+    row.ammo.trim().length === 0 &&
+    row.notes.trim().length === 0
+  );
+}
+
+function isCyberwareRowEmpty(row: CharacterSheet["cyberwareRows"][number]) {
+  return (
+    row.name.trim().length === 0 &&
+    row.type.trim().length === 0 &&
+    row.notes.trim().length === 0 &&
+    row.hl.trim().length === 0
+  );
+}
+
+function isFoundationCyberwareDescription(description: string) {
+  return /Has\s+\d+\s+Option\s+Slots?/i.test(description);
+}
+
+function hasInstalledFoundationCyberwareForType(
+  typeName: string,
+  installedCyberware: Array<{ name: string; type: string }>,
+) {
+  const normalizedType = typeName.trim().toLowerCase();
+  if (!normalizedType) {
+    return false;
+  }
+
+  return installedCyberware.some((item) => {
+    const entry = findCyberwareCatalogEntry(item.name);
+    if (!entry) {
+      return false;
+    }
+
+    return (
+      entry.type.trim().toLowerCase() === normalizedType &&
+      isFoundationCyberwareDescription(entry.descriptionData)
+    );
+  });
+}
+
+function parseFoundationSelections(value: string): Set<string> {
+  return new Set(
+    value
+      .split(",")
+      .map((part) => part.trim())
+      .filter((part) => part.length > 0),
+  );
+}
+
+function buildFoundationValueForType(
+  typeName: string,
+  installedCyberware: Array<{ name: string; type: string }>,
+) {
+  const normalizedType = typeName.trim().toLowerCase();
+  const foundationEntries = installedCyberware.filter((item) => {
+    const entry = findCyberwareCatalogEntry(item.name);
+    if (!entry) {
+      return false;
+    }
+
+    return (
+      entry.type.trim().toLowerCase() === normalizedType &&
+      isFoundationCyberwareDescription(entry.descriptionData)
+    );
+  });
+
+  if (foundationEntries.length === 0) {
+    return "";
+  }
+
+  if (normalizedType === "cyberlimbs") {
+    const keys = ["A1", "A2", "L1", "L2"].slice(0, foundationEntries.length);
+    return keys.join(",");
+  }
+
+  if (normalizedType === "cyberoptics") {
+    const keys = ["E1", "E2"].slice(0, foundationEntries.length);
+    return keys.join(",");
+  }
+
+  return "Yes";
 }
 
 function makeInitialSheet(sheet: CharacterSheet): CharacterSheet {
@@ -178,7 +398,7 @@ function makeInitialSheet(sheet: CharacterSheet): CharacterSheet {
         ...row,
         type: "",
         notes: "",
-        hl: "0",
+        hl: "",
       };
     }
 
@@ -208,23 +428,60 @@ function makeInitialSheet(sheet: CharacterSheet): CharacterSheet {
     const cyberwareTypeRows = nextSheet.cyberwareTypeRows.map((typeRow) => ({
       ...typeRow,
       optionSlots: String(getAvailableOptionSlotsForType(typeRow.name, installedCyberware)),
+      foundation: buildFoundationValueForType(typeRow.name, installedCyberware),
       hl: String(
         cyberwareRows
           .filter((row) => row.type === typeRow.name)
           .reduce((total, row) => total + parseHl(row.hl), 0),
       ),
     }));
+    const totalCyberwareHl = cyberwareTypeRows.reduce((total, row) => total + parseHl(row.hl), 0);
 
     return {
       ...nextSheet,
       cyberwareRows,
       cyberwareTypeRows,
+      humanityTrack: {
+        ...nextSheet.humanityTrack,
+        totalHl: String(totalCyberwareHl),
+      },
     };
   };
 
   return withComputedCyberwareHl({
     ...fallback,
     ...sheet,
+    inventoryItems:
+      (sheet.inventoryItems?.length ?? 0) > 0
+        ? sheet.inventoryItems
+            .map((item) => ({
+              name: item.name?.trim() ?? "",
+              source: item.source ?? "Custom",
+              description: item.description?.trim() ?? "",
+            }))
+            .filter((item) => item.name.length > 0)
+        : (sheet.gear ?? "")
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => line.length > 0)
+            .map((line) => line.replace(/^[-*]\s*/, ""))
+            .map((name) => ({
+              name,
+              source: "Custom" as const,
+              description: "",
+            })),
+    gear:
+      (sheet.inventoryItems?.length ?? 0) > 0
+        ? buildGearTextFromInventoryItems(
+            sheet.inventoryItems
+              .map((item) => ({
+                name: item.name?.trim() ?? "",
+                source: item.source ?? "Custom",
+                description: item.description?.trim() ?? "",
+              }))
+              .filter((item) => item.name.length > 0),
+          )
+        : sheet.gear ?? "",
     stats: { ...fallback.stats, ...sheet.stats },
     combat: {
       ...fallback.combat,
@@ -234,6 +491,10 @@ function makeInitialSheet(sheet: CharacterSheet): CharacterSheet {
         ...sheet.combat.body,
       },
     },
+    weaponRows:
+      (sheet.weaponRows.length > 0 ? sheet.weaponRows : fallback.weaponRows).filter(
+        (row) => !isWeaponRowEmpty(row),
+      ),
     weaponsArmorRows:
       sheet.weaponsArmorRows.length > 0 ? sheet.weaponsArmorRows : fallback.weaponsArmorRows,
     cybernetics: sheet.cybernetics.length > 0 ? sheet.cybernetics : fallback.cybernetics,
@@ -245,12 +506,12 @@ function makeInitialSheet(sheet: CharacterSheet): CharacterSheet {
       optionSlots: normalizeOptionSlots(row.optionSlots),
       hl: normalizeHl(row.hl),
     })),
-    cyberwareRows: (sheet.cyberwareRows.length > 0 ? sheet.cyberwareRows : fallback.cyberwareRows).map(
-      (row) => ({
+    cyberwareRows: (sheet.cyberwareRows.length > 0 ? sheet.cyberwareRows : fallback.cyberwareRows)
+      .filter((row) => !isCyberwareRowEmpty(row))
+      .map((row) => ({
         ...row,
-        hl: normalizeHl(row.hl),
-      }),
-    ),
+        hl: row.hl.trim().length > 0 ? normalizeHl(row.hl) : "",
+      })),
     skills: { ...fallback.skills, ...sheet.skills },
   });
 }
@@ -450,8 +711,15 @@ export default function MemberProfileForm({
   const [success, setSuccess] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [activeSkillLabel, setActiveSkillLabel] = useState<string | null>(null);
-  const [activeCyberwareNoteText, setActiveCyberwareNoteText] = useState<string | null>(null);
+  const [activeInventoryItem, setActiveInventoryItem] = useState<CharacterSheet["inventoryItems"][number] | null>(null);
   const [pendingCyberwareHlChoice, setPendingCyberwareHlChoice] = useState<Record<number, boolean>>({});
+  const [showInventory, setShowInventory] = useState(false);
+  const [inventorySource, setInventorySource] = useState<"Cyberware" | "Weapons">("Cyberware");
+  const [selectedInventoryItem, setSelectedInventoryItem] = useState("");
+  const [showCustomInventoryModal, setShowCustomInventoryModal] = useState(false);
+  const [customInventoryName, setCustomInventoryName] = useState("");
+  const [customInventoryDescription, setCustomInventoryDescription] = useState("");
+  const [pendingInventoryRemovalIndex, setPendingInventoryRemovalIndex] = useState<number | null>(null);
   const [showSkills, setShowSkills] = useState(false);
   const [showCampaignTrack, setShowCampaignTrack] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
@@ -460,7 +728,6 @@ export default function MemberProfileForm({
     cyberwareType: true,
     cyberwareName: true,
     armor: true,
-    gear: true,
     economy: true,
   });
   const lastSavedSheetRef = useRef<string>(JSON.stringify(makeInitialSheet(initialUser.sheet)));
@@ -471,35 +738,42 @@ export default function MemberProfileForm({
   const installedCyberwareNames = sheet.cyberwareRows.map((row) => row.name);
   const parsedBodyStat = Number.parseInt(sheet.stats.BODY, 10);
   const bodyStat = Number.isFinite(parsedBodyStat) ? parsedBodyStat : undefined;
+  const maxHp = 40;
+  const seriouslyWoundedThreshold = maxHp > 0 ? Math.floor(maxHp / 2) : 0;
   const canOverrideReadOnly = canEdit && canEditReadOnlyFields;
+  const inventoryEditable = canEdit;
   const activeSkillDescription = activeSkillLabel ? SKILL_DESCRIPTIONS[activeSkillLabel] ?? "No description found for this skill." : null;
+  const inventoryOptions =
+    inventorySource === "Cyberware" ? CYBERWARE_INVENTORY_OPTIONS : WEAPON_INVENTORY_OPTIONS;
+  const inventoryItems = sheet.inventoryItems;
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   useEffect(() => {
-    if (!activeSkillLabel && !activeCyberwareNoteText) {
+    if (!activeSkillLabel && !activeInventoryItem && !showCustomInventoryModal) {
       return;
     }
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setActiveSkillLabel(null);
-        setActiveCyberwareNoteText(null);
+        setActiveInventoryItem(null);
+        setShowCustomInventoryModal(false);
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [activeSkillLabel, activeCyberwareNoteText]);
+  }, [activeSkillLabel, activeInventoryItem, showCustomInventoryModal]);
 
   useEffect(() => {
     if (!isMounted) {
       return;
     }
 
-    const hasOpenModal = Boolean(activeSkillLabel || activeCyberwareNoteText);
+    const hasOpenModal = Boolean(activeSkillLabel || activeInventoryItem || showCustomInventoryModal);
     const previousOverflow = document.body.style.overflow;
 
     if (hasOpenModal) {
@@ -509,7 +783,7 @@ export default function MemberProfileForm({
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [isMounted, activeSkillLabel, activeCyberwareNoteText]);
+  }, [isMounted, activeSkillLabel, activeInventoryItem, showCustomInventoryModal]);
 
   const normalizeHl = (value: string) => (value.trim().length > 0 ? value : "0");
   const parseHl = (value: string) => {
@@ -523,7 +797,7 @@ export default function MemberProfileForm({
         ...row,
         type: "",
         notes: "",
-        hl: "0",
+        hl: "",
       };
     }
 
@@ -541,17 +815,6 @@ export default function MemberProfileForm({
       notes: catalogEntry.descriptionData,
       hl: normalizeHlToNumberString(row.hl, parseHlRule(catalogEntry.hl).defaultValue),
     };
-  };
-
-  const NOTE_PREVIEW_LENGTH = 72;
-  const shouldShowReadMore = (notes: string) => notes.trim().length > NOTE_PREVIEW_LENGTH;
-  const canOpenMoreModal = (notes: string) => notes.trim().length > 0;
-  const getNotesPreview = (notes: string) => {
-    if (!shouldShowReadMore(notes)) {
-      return notes;
-    }
-
-    return `${notes.slice(0, NOTE_PREVIEW_LENGTH).trimEnd()}...`;
   };
 
   const getHlTextSizeClass = (hl: string) => (hl.trim().length > 8 ? "text-xs" : "text-sm");
@@ -649,19 +912,26 @@ export default function MemberProfileForm({
       name: row.name,
       type: row.type,
     }));
+    const cyberwareTypeRows = nextSheet.cyberwareTypeRows.map((typeRow) => ({
+      ...typeRow,
+      optionSlots: String(getAvailableOptionSlotsForType(typeRow.name, installedCyberware)),
+      foundation: buildFoundationValueForType(typeRow.name, installedCyberware),
+      hl: String(
+        cyberwareRows
+          .filter((row) => row.type === typeRow.name)
+          .reduce((total, row) => total + parseHl(row.hl), 0),
+      ),
+    }));
+    const totalCyberwareHl = cyberwareTypeRows.reduce((total, row) => total + parseHl(row.hl), 0);
 
     return {
       ...nextSheet,
       cyberwareRows,
-      cyberwareTypeRows: nextSheet.cyberwareTypeRows.map((typeRow) => ({
-        ...typeRow,
-        optionSlots: String(getAvailableOptionSlotsForType(typeRow.name, installedCyberware)),
-        hl: String(
-          cyberwareRows
-            .filter((row) => row.type === typeRow.name)
-            .reduce((total, row) => total + parseHl(row.hl), 0),
-        ),
-      })),
+      cyberwareTypeRows,
+      humanityTrack: {
+        ...nextSheet.humanityTrack,
+        totalHl: String(totalCyberwareHl),
+      },
     };
   }
 
@@ -711,7 +981,7 @@ export default function MemberProfileForm({
   }
 
   function updateWeaponRow(index: number, field: keyof CharacterSheet["weaponRows"][number], value: string) {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
@@ -737,7 +1007,7 @@ export default function MemberProfileForm({
   }
 
   function addWeaponRow() {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
@@ -748,12 +1018,12 @@ export default function MemberProfileForm({
   }
 
   function removeWeaponRow() {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
     setSheet((current) => {
-      if (current.weaponRows.length <= 1) {
+      if (current.weaponRows.length === 0) {
         return current;
       }
 
@@ -765,7 +1035,7 @@ export default function MemberProfileForm({
   }
 
   function addArmorRow() {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
@@ -776,12 +1046,12 @@ export default function MemberProfileForm({
   }
 
   function removeArmorRow() {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
     setSheet((current) => {
-      if (current.armorRows.length <= 1) {
+      if (current.armorRows.length === 0) {
         return current;
       }
 
@@ -830,12 +1100,8 @@ export default function MemberProfileForm({
     field: keyof CharacterSheet["cyberwareRows"][number],
     value: string,
   ) {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
-    }
-
-    if (field === "name") {
-      setActiveCyberwareNoteText(null);
     }
 
     if (field === "name") {
@@ -867,7 +1133,7 @@ export default function MemberProfileForm({
   }
 
   function applyCyberwareHlChoice(index: number, mode: "default" | "roll") {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
@@ -910,7 +1176,7 @@ export default function MemberProfileForm({
   }
 
   function addCyberwareRow() {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
@@ -923,15 +1189,13 @@ export default function MemberProfileForm({
   }
 
   function removeCyberwareRow() {
-    if (!canEdit) {
+    if (!canOverrideReadOnly) {
       return;
     }
 
-    setActiveCyberwareNoteText(null);
     setPendingCyberwareHlChoice({});
-
     setSheet((current) => {
-      if (current.cyberwareRows.length <= 1) {
+      if (current.cyberwareRows.length === 0) {
         return current;
       }
 
@@ -946,44 +1210,15 @@ export default function MemberProfileForm({
     return name.trim().length === 0 || cyberwareCatalogNames.has(name.trim().toLowerCase());
   }
 
-  function parseFoundationSelections(value: string): Set<string> {
-    return new Set(
-      value
-        .split(",")
-        .map((part) => part.trim())
-        .filter((part) => part.length > 0),
-    );
-  }
-
-  function serializeFoundationSelections(selections: Set<string>): string {
-    return Array.from(selections.values()).sort().join(",");
-  }
-
-  function updateFoundationSelection(
-    rowIndex: number,
-    foundationKey: string,
-    checked: boolean,
-    currentFoundationValue: string,
-  ) {
-    if (!canEdit) {
-      return;
-    }
-
-    const selections = parseFoundationSelections(currentFoundationValue);
-    if (checked) {
-      selections.add(foundationKey);
-    } else {
-      selections.delete(foundationKey);
-    }
-
-    updateCyberwareTypeRow(rowIndex, "foundation", serializeFoundationSelections(selections));
-  }
-
   function updateHumanityTrack(
     field: keyof CharacterSheet["humanityTrack"],
     value: string,
   ) {
     if (!canEdit) {
+      return;
+    }
+
+    if (field === "totalHl") {
       return;
     }
 
@@ -1022,6 +1257,237 @@ export default function MemberProfileForm({
         [label]: value,
       },
     }));
+  }
+
+  function addSelectedItemToInventory() {
+    if (!inventoryEditable) {
+      return;
+    }
+
+    const itemName = selectedInventoryItem.trim();
+    if (!itemName) {
+      return;
+    }
+
+    const selectedOption = inventoryOptions.find((option) => option.name === itemName);
+    if (!selectedOption) {
+      return;
+    }
+
+    setSheet((current) => {
+      const nextInventoryItems = [
+        ...current.inventoryItems,
+        {
+          name: selectedOption.name,
+          source: selectedOption.source,
+          description: selectedOption.description,
+        },
+      ];
+
+      return {
+        ...current,
+        inventoryItems: nextInventoryItems,
+        gear: buildGearTextFromInventoryItems(nextInventoryItems),
+      };
+    });
+
+    setSelectedInventoryItem("");
+  }
+
+  function addCustomInventoryItem() {
+    if (!inventoryEditable) {
+      return;
+    }
+
+    const trimmedName = customInventoryName.trim();
+    const trimmedDescription = customInventoryDescription.trim();
+    if (trimmedName.length === 0) {
+      return;
+    }
+
+    setSheet((current) => {
+      const nextInventoryItems = [
+        ...current.inventoryItems,
+        {
+          name: trimmedName,
+          source: "Custom" as const,
+          description: trimmedDescription,
+        },
+      ];
+
+      return {
+        ...current,
+        inventoryItems: nextInventoryItems,
+        gear: buildGearTextFromInventoryItems(nextInventoryItems),
+      };
+    });
+
+    setCustomInventoryName("");
+    setCustomInventoryDescription("");
+    setShowCustomInventoryModal(false);
+  }
+
+  function removeInventoryItem(indexToRemove: number) {
+    if (!canEdit) {
+      return;
+    }
+
+    if (pendingInventoryRemovalIndex !== indexToRemove) {
+      setPendingInventoryRemovalIndex(indexToRemove);
+      return;
+    }
+
+    setSheet((current) => {
+      const nextInventoryItems = current.inventoryItems.filter((_, index) => index !== indexToRemove);
+      return {
+        ...current,
+        inventoryItems: nextInventoryItems,
+        gear: buildGearTextFromInventoryItems(nextInventoryItems),
+      };
+    });
+
+    setPendingInventoryRemovalIndex(null);
+  }
+
+  function isInventoryItemEquipped(item: CharacterSheet["inventoryItems"][number]) {
+    const normalizedName = item.name.trim().toLowerCase();
+    if (!normalizedName) {
+      return false;
+    }
+
+    if (item.source === "Weapons") {
+      return sheet.weaponRows.some((row) => row.name.trim().toLowerCase() === normalizedName);
+    }
+
+    if (item.source === "Cyberware") {
+      return sheet.cyberwareRows.some((row) => row.name.trim().toLowerCase() === normalizedName);
+    }
+
+    return false;
+  }
+
+  function equipInventoryItem(item: CharacterSheet["inventoryItems"][number]) {
+    if (!canEdit) {
+      return;
+    }
+
+    const normalizedName = item.name.trim().toLowerCase();
+    const alreadyEquipped = isInventoryItemEquipped(item);
+
+    if (item.source === "Weapons") {
+      if (alreadyEquipped) {
+        setError(null);
+        setSuccess(`${item.name} unequipped from weapons.`);
+        setSheet((current) => {
+          const targetIndex = current.weaponRows.findIndex((row) => row.name.trim().toLowerCase() === normalizedName);
+          if (targetIndex < 0) {
+            return current;
+          }
+
+          const nextRows = current.weaponRows.filter((_, index) => index !== targetIndex);
+
+          return {
+            ...current,
+            weaponRows: nextRows,
+          };
+        });
+
+        return;
+      }
+
+      const weaponPreset = WEAPON_EQUIP_PRESETS.get(normalizedName);
+      if (!weaponPreset) {
+        setError(`Could not find weapon data for ${item.name}.`);
+        return;
+      }
+
+      setError(null);
+      setSuccess(`${weaponPreset.name} equipped to weapons.`);
+      setSheet((current) => {
+        const nextRow: CharacterSheet["weaponRows"][number] = {
+          name: weaponPreset.name,
+          dmg: weaponPreset.dmg,
+          rof: weaponPreset.rof,
+          hands: weaponPreset.hands,
+          con: weaponPreset.con,
+          mag: weaponPreset.mag,
+          ammo: weaponPreset.ammo,
+          notes: weaponPreset.notes,
+        };
+
+        return {
+          ...current,
+          weaponRows: [...current.weaponRows, nextRow],
+        };
+      });
+
+      return;
+    }
+
+    if (item.source === "Cyberware") {
+      if (alreadyEquipped) {
+        setError(null);
+        setSuccess(`${item.name} unequipped from cyberware.`);
+        setSheet((current) => {
+          const targetIndex = current.cyberwareRows.findIndex((row) => row.name.trim().toLowerCase() === normalizedName);
+          if (targetIndex < 0) {
+            return current;
+          }
+
+          const nextRows = current.cyberwareRows.filter((_, index) => index !== targetIndex);
+
+          return recalculateCyberwareHl({
+            ...current,
+            cyberwareRows: nextRows,
+          });
+        });
+
+        return;
+      }
+
+      if (!CYBERWARE_EQUIP_NAMES.has(normalizedName)) {
+        setError(`Could not find cyberware data for ${item.name}.`);
+        return;
+      }
+
+      const catalogEntry = findCyberwareCatalogEntry(item.name);
+      if (!catalogEntry) {
+        setError(`Could not find cyberware data for ${item.name}.`);
+        return;
+      }
+
+      const warnings = getCyberwarePrerequisiteWarnings(catalogEntry, {
+        installedCyberwareNames: [...installedCyberwareNames, catalogEntry.name],
+        bodyStat,
+      });
+
+      if (warnings.length > 0) {
+        setError(`Cannot equip ${catalogEntry.name}. ${warnings.join(" ")}`);
+        return;
+      }
+
+      setError(null);
+      setSuccess(`${catalogEntry.name} equipped to cyberware.`);
+      setSheet((current) => {
+        const nextRow: CharacterSheet["cyberwareRows"][number] = {
+          name: catalogEntry.name,
+          type: catalogEntry.type,
+          notes: catalogEntry.descriptionData,
+          hl: "",
+        };
+
+        const nextSheet = recalculateCyberwareHl({
+          ...current,
+          cyberwareRows: [nextRow, ...current.cyberwareRows],
+        });
+
+        return nextSheet;
+      });
+
+      return;
+    }
+
+    setError(`Equip is only available for weapon and cyberware items.`);
   }
 
   useEffect(() => {
@@ -1253,13 +1719,6 @@ export default function MemberProfileForm({
                     inputMode="numeric"
                     placeholder="0"
                   />
-                  <SheetInput
-                    label="BTM"
-                    value={sheet.combat.btm}
-                    onChange={(value) => updateCombat("btm", value)}
-                    inputMode="numeric"
-                    placeholder="0"
-                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-600">
@@ -1281,34 +1740,36 @@ export default function MemberProfileForm({
               </div>
 
               <div className="rounded-[1.15rem] border-2 border-slate-900 bg-white p-4">
-                <SectionHeader title="SAVE / BTM" subtitle="Combat track" />
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      Save
-                    </div>
-                    <input
-                      type="text"
-                      value={sheet.combat.save}
-                      onChange={(event) => updateCombat("save", event.target.value)}
-                      className="mt-1 w-full border-0 bg-transparent p-0 text-sm outline-none"
+                <SectionHeader title="HP" subtitle="Wounded conditions" />
+                <div className="space-y-3">
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <SheetInput
+                      label="Current HP"
+                      value={sheet.combat.currentHp}
+                      onChange={(value) => updateCombat("currentHp", value)}
+                      inputMode="numeric"
+                      placeholder={maxHp > 0 ? String(maxHp) : "0"}
                     />
+                    <div className="rounded-md border-2 border-slate-900 bg-slate-50 px-3 py-2 text-sm">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
+                        Max HP
+                      </div>
+                      <div className="mt-1 text-base font-semibold text-slate-950">{maxHp > 0 ? maxHp : "-"}</div>
+                    </div>
                   </div>
-                  <div className="rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-500">
-                      BTM
-                    </div>
-                    <input
-                      type="text"
-                      value={sheet.combat.btm}
-                      onChange={(event) => updateCombat("btm", event.target.value)}
-                      className="mt-1 w-full border-0 bg-transparent p-0 text-sm outline-none"
-                    />
+                  <div className="rounded-md border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+                    <p>
+                      <span className="font-semibold">Seriously Wounded:</span>{" "}
+                      {maxHp > 0 ? `HP <= ${seriouslyWoundedThreshold}` : "Set BODY to calculate"}
+                    </p>
+                    <p>
+                      <span className="font-semibold">Mortally Wounded:</span> HP {"<="} 0
+                    </p>
+                    <p>
+                      <span className="font-semibold">Death Save:</span> Required while at 0 HP or less
+                    </p>
                   </div>
                 </div>
-                <p className="mt-3 text-xs leading-5 text-slate-500">
-                  Use this block for damage, save, and armor notes.
-                </p>
               </div>
             </section>
 
@@ -1329,7 +1790,7 @@ export default function MemberProfileForm({
                         >
                           {showLoadoutSections.weapons ? "Hide" : "Show"}
                         </button>
-                        {canEdit && showLoadoutSections.weapons ? (
+                        {canOverrideReadOnly && showLoadoutSections.weapons ? (
                           <>
                             <button
                               type="button"
@@ -1342,7 +1803,7 @@ export default function MemberProfileForm({
                               type="button"
                               className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                               onClick={removeWeaponRow}
-                              disabled={sheet.weaponRows.length <= 1}
+                              disabled={sheet.weaponRows.length === 0}
                             >
                               Remove Row
                             </button>
@@ -1361,42 +1822,38 @@ export default function MemberProfileForm({
                           <div className="grid grid-cols-2 gap-2">
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Weapon Name
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.name} onChange={(event) => updateWeaponRow(index, "name", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.name} onChange={(event) => updateWeaponRow(index, "name", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               DMG
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.dmg} onChange={(event) => updateWeaponRow(index, "dmg", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.dmg} onChange={(event) => updateWeaponRow(index, "dmg", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               ROF
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.rof} onChange={(event) => updateWeaponRow(index, "rof", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.rof} onChange={(event) => updateWeaponRow(index, "rof", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Hands
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.hands} onChange={(event) => updateWeaponRow(index, "hands", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.hands} onChange={(event) => updateWeaponRow(index, "hands", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Con
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.con} onChange={(event) => updateWeaponRow(index, "con", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.con} onChange={(event) => updateWeaponRow(index, "con", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Mag
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.mag} onChange={(event) => updateWeaponRow(index, "mag", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.mag} onChange={(event) => updateWeaponRow(index, "mag", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Ammo
-                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.ammo} onChange={(event) => updateWeaponRow(index, "ammo", event.target.value)} />
+                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.ammo} onChange={(event) => updateWeaponRow(index, "ammo", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                             </label>
                           </div>
-                          <label className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                            Notes
-                            <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm" value={row.notes} onChange={(event) => updateWeaponRow(index, "notes", event.target.value)} />
-                          </label>
                         </div>
                       ))}
                     </div>
                     <div className="hidden w-full space-y-2 overflow-x-auto md:block">
-                      <div className="grid w-full grid-cols-[minmax(8rem,2.2fr)_minmax(2.5rem,0.7fr)_minmax(2.2rem,0.55fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(7rem,1.4fr)] gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+                      <div className="grid w-full grid-cols-[minmax(8rem,2.2fr)_minmax(2.5rem,0.7fr)_minmax(2.2rem,0.55fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)] gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
                         <span>Weapon Name</span>
                         <span>DMG</span>
                         <span>ROF</span>
@@ -1404,18 +1861,16 @@ export default function MemberProfileForm({
                         <span>Con</span>
                         <span>Mag</span>
                         <span>Ammo</span>
-                        <span>Notes</span>
                       </div>
                       {sheet.weaponRows.map((row, index) => (
-                        <div key={index} className="grid w-full grid-cols-[minmax(8rem,2.2fr)_minmax(2.5rem,0.7fr)_minmax(2.2rem,0.55fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(7rem,1.4fr)] gap-2">
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.name} onChange={(event) => updateWeaponRow(index, "name", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.dmg} onChange={(event) => updateWeaponRow(index, "dmg", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.rof} onChange={(event) => updateWeaponRow(index, "rof", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.hands} onChange={(event) => updateWeaponRow(index, "hands", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.con} onChange={(event) => updateWeaponRow(index, "con", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.mag} onChange={(event) => updateWeaponRow(index, "mag", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.ammo} onChange={(event) => updateWeaponRow(index, "ammo", event.target.value)} />
-                          <input className="min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm" value={row.notes} onChange={(event) => updateWeaponRow(index, "notes", event.target.value)} />
+                        <div key={index} className="grid w-full grid-cols-[minmax(8rem,2.2fr)_minmax(2.5rem,0.7fr)_minmax(2.2rem,0.55fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)] gap-2">
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.name} onChange={(event) => updateWeaponRow(index, "name", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.dmg} onChange={(event) => updateWeaponRow(index, "dmg", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.rof} onChange={(event) => updateWeaponRow(index, "rof", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.hands} onChange={(event) => updateWeaponRow(index, "hands", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.con} onChange={(event) => updateWeaponRow(index, "con", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.mag} onChange={(event) => updateWeaponRow(index, "mag", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.ammo} onChange={(event) => updateWeaponRow(index, "ammo", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
                         </div>
                       ))}
                     </div>
@@ -1463,25 +1918,21 @@ export default function MemberProfileForm({
                             tabIndex={canOverrideReadOnly ? 0 : -1}
                           />
                           {row.name.trim().toLowerCase() === "cyberlimbs" ? (
-                            <div className="min-h-9 rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-700">
+                            <div className="min-h-9 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-700">
                               <div className="flex items-center justify-between gap-2">
                                 <span>Arms</span>
                                 <div className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
                                     checked={parseFoundationSelections(row.foundation).has("A1")}
-                                    onChange={(event) =>
-                                      updateFoundationSelection(index, "A1", event.target.checked, row.foundation)
-                                    }
-                                    className="h-3.5 w-3.5 accent-blue-800"
+                                    disabled
+                                    className="h-3.5 w-3.5 cursor-not-allowed accent-blue-800"
                                   />
                                   <input
                                     type="checkbox"
                                     checked={parseFoundationSelections(row.foundation).has("A2")}
-                                    onChange={(event) =>
-                                      updateFoundationSelection(index, "A2", event.target.checked, row.foundation)
-                                    }
-                                    className="h-3.5 w-3.5 accent-blue-800"
+                                    disabled
+                                    className="h-3.5 w-3.5 cursor-not-allowed accent-blue-800"
                                   />
                                 </div>
                               </div>
@@ -1491,53 +1942,45 @@ export default function MemberProfileForm({
                                   <input
                                     type="checkbox"
                                     checked={parseFoundationSelections(row.foundation).has("L1")}
-                                    onChange={(event) =>
-                                      updateFoundationSelection(index, "L1", event.target.checked, row.foundation)
-                                    }
-                                    className="h-3.5 w-3.5 accent-blue-800"
+                                    disabled
+                                    className="h-3.5 w-3.5 cursor-not-allowed accent-blue-800"
                                   />
                                   <input
                                     type="checkbox"
                                     checked={parseFoundationSelections(row.foundation).has("L2")}
-                                    onChange={(event) =>
-                                      updateFoundationSelection(index, "L2", event.target.checked, row.foundation)
-                                    }
-                                    className="h-3.5 w-3.5 accent-blue-800"
+                                    disabled
+                                    className="h-3.5 w-3.5 cursor-not-allowed accent-blue-800"
                                   />
                                 </div>
                               </div>
                             </div>
                           ) : row.name.trim().toLowerCase() === "cyberoptics" ? (
-                            <div className="min-h-9 rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-700">
+                            <div className="min-h-9 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-700">
                               <div className="flex items-center justify-between gap-2">
                                 <span>Eyes</span>
                                 <div className="flex items-center gap-2">
                                   <input
                                     type="checkbox"
                                     checked={parseFoundationSelections(row.foundation).has("E1")}
-                                    onChange={(event) =>
-                                      updateFoundationSelection(index, "E1", event.target.checked, row.foundation)
-                                    }
-                                    className="h-3.5 w-3.5 accent-blue-800"
+                                    disabled
+                                    className="h-3.5 w-3.5 cursor-not-allowed accent-blue-800"
                                   />
                                   <input
                                     type="checkbox"
                                     checked={parseFoundationSelections(row.foundation).has("E2")}
-                                    onChange={(event) =>
-                                      updateFoundationSelection(index, "E2", event.target.checked, row.foundation)
-                                    }
-                                    className="h-3.5 w-3.5 accent-blue-800"
+                                    disabled
+                                    className="h-3.5 w-3.5 cursor-not-allowed accent-blue-800"
                                   />
                                 </div>
                               </div>
                             </div>
                           ) : (
-                            <label className="flex min-h-9 items-center justify-center rounded-md border border-slate-900 bg-white px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700">
+                            <label className="flex min-h-9 items-center justify-center rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-slate-700">
                               <input
                                 type="checkbox"
                                 checked={["true", "yes", "1", "checked", "x"].includes(row.foundation.trim().toLowerCase())}
-                                onChange={(event) => updateCyberwareTypeRow(index, "foundation", event.target.checked ? "Yes" : "")}
-                                className="h-4 w-4 accent-blue-800"
+                                disabled
+                                className="h-4 w-4 cursor-not-allowed accent-blue-800"
                               />
                             </label>
                           )}
@@ -1568,7 +2011,7 @@ export default function MemberProfileForm({
                         >
                           {showLoadoutSections.cyberwareName ? "Hide" : "Show"}
                         </button>
-                        {canEdit && showLoadoutSections.cyberwareName ? (
+                        {canOverrideReadOnly && showLoadoutSections.cyberwareName ? (
                           <>
                             <button
                               type="button"
@@ -1581,7 +2024,7 @@ export default function MemberProfileForm({
                               type="button"
                               className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                               onClick={removeCyberwareRow}
-                              disabled={sheet.cyberwareRows.length <= 1}
+                              disabled={sheet.cyberwareRows.length === 0}
                             >
                               Remove Row
                             </button>
@@ -1637,34 +2080,6 @@ export default function MemberProfileForm({
                             </label>
                             <div>
                               <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
-                                Notes
-                              </span>
-                              {matchedCyberwareEntry ? (
-                                <div className="mt-1 flex min-h-10 min-w-0 items-center gap-2 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm">
-                                  <p className="min-w-0 flex-1 truncate">{getNotesPreview(row.notes)}</p>
-                                  {canOpenMoreModal(row.notes) ? (
-                                    <button
-                                      type="button"
-                                      className="shrink-0 text-[11px] font-semibold text-blue-800 hover:text-blue-700"
-                                      onClick={() => setActiveCyberwareNoteText(row.notes)}
-                                    >
-                                      More
-                                    </button>
-                                  ) : null}
-                                </div>
-                              ) : (
-                                <input
-                                  className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
-                                  value={row.notes}
-                                  onChange={(event) => updateCyberwareRow(index, "notes", event.target.value)}
-                                  readOnly={!canOverrideReadOnly}
-                                  aria-readonly={!canOverrideReadOnly ? "true" : "false"}
-                                  tabIndex={canOverrideReadOnly ? 0 : -1}
-                                />
-                              )}
-                            </div>
-                            <div>
-                              <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                                 HL
                               </span>
                               {showHlChooser && matchedHlRule ? (
@@ -1702,10 +2117,9 @@ export default function MemberProfileForm({
                       })}
                     </div>
                     <div className="hidden w-full space-y-2 overflow-x-auto md:block">
-                      <div className="grid w-full grid-cols-[minmax(9rem,1.9fr)_minmax(5.5rem,1.1fr)_minmax(10rem,2fr)_minmax(3.25rem,0.55fr)] gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
+                      <div className="grid w-full grid-cols-3 gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
                         <span>Cyberware Name</span>
                         <span>Type</span>
-                        <span>Notes</span>
                         <span>HL</span>
                       </div>
                       <datalist id="cyberware-name-options">
@@ -1730,7 +2144,7 @@ export default function MemberProfileForm({
                           !hasUnmetPrerequisites &&
                           (Boolean(pendingCyberwareHlChoice[index]) || row.hl.trim().length === 0);
                         return (
-                        <div key={index} className="grid w-full grid-cols-[minmax(9rem,1.9fr)_minmax(5.5rem,1.1fr)_minmax(10rem,2fr)_minmax(3.25rem,0.55fr)] items-center gap-2">
+                        <div key={index} className="grid w-full grid-cols-3 items-center gap-2">
                           <div className="h-9">
                             <input list="cyberware-name-options" autoComplete="off" className={`h-full min-w-0 rounded-md border px-2 py-1 text-sm ${!isValidCyberwareName(row.name) ? "border-red-600" : hasUnmetPrerequisites ? "border-amber-600" : "border-slate-900"}`} value={row.name} onChange={(event) => updateCyberwareRow(index, "name", event.target.value)} />
                           </div>
@@ -1742,31 +2156,6 @@ export default function MemberProfileForm({
                             aria-readonly={!canOverrideReadOnly ? "true" : "false"}
                             tabIndex={canOverrideReadOnly ? 0 : -1}
                           />
-                          {matchedCyberwareEntry ? (
-                            <div className="flex h-9 min-w-0 items-center gap-2 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm">
-                              <p className="min-w-0 flex-1 truncate">
-                                {getNotesPreview(row.notes)}
-                              </p>
-                              {canOpenMoreModal(row.notes) ? (
-                                <button
-                                  type="button"
-                                    className="shrink-0 text-[11px] font-semibold text-blue-800 hover:text-blue-700"
-                                  onClick={() => setActiveCyberwareNoteText(row.notes)}
-                                >
-                                  More
-                                </button>
-                              ) : null}
-                            </div>
-                          ) : (
-                            <input
-                              className={`h-9 min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`}
-                              value={row.notes}
-                              onChange={(event) => updateCyberwareRow(index, "notes", event.target.value)}
-                              readOnly={!canOverrideReadOnly}
-                              aria-readonly={!canOverrideReadOnly ? "true" : "false"}
-                              tabIndex={canOverrideReadOnly ? 0 : -1}
-                            />
-                          )}
                           {showHlChooser && matchedHlRule ? (
                             <select
                               value=""
@@ -1792,7 +2181,7 @@ export default function MemberProfileForm({
                             />
                           )}
                           {hasUnmetPrerequisites ? (
-                            <div className="col-span-4 mt-1 rounded-md border border-amber-500/60 bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
+                            <div className="col-span-3 mt-1 rounded-md border border-amber-500/60 bg-amber-50 px-2 py-1 text-[11px] text-amber-900">
                               Missing prerequisites: {prerequisiteWarnings.join(" ")}
                             </div>
                           ) : null}
@@ -1818,7 +2207,7 @@ export default function MemberProfileForm({
                         >
                           {showLoadoutSections.armor ? "Hide" : "Show"}
                         </button>
-                        {canEdit && showLoadoutSections.armor ? (
+                        {canOverrideReadOnly && showLoadoutSections.armor ? (
                           <>
                             <button
                               type="button"
@@ -1831,7 +2220,7 @@ export default function MemberProfileForm({
                               type="button"
                               className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
                               onClick={removeArmorRow}
-                              disabled={sheet.armorRows.length <= 1}
+                              disabled={sheet.armorRows.length === 0}
                             >
                               Remove Row
                             </button>
@@ -1891,36 +2280,6 @@ export default function MemberProfileForm({
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
                     <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
-                        Gear
-                      </h3>
-                      <button
-                        type="button"
-                        className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
-                        onClick={() => toggleLoadoutSection("gear")}
-                      >
-                        {showLoadoutSections.gear ? "Hide" : "Show"}
-                      </button>
-                    </div>
-                    {showLoadoutSections.gear ? (
-                    <textarea
-                      value={sheet.gear}
-                      onChange={(event) => {
-                        if (!canEdit) {
-                          return;
-                        }
-
-                        setSheet((current) => ({ ...current, gear: event.target.value }));
-                      }}
-                      rows={16}
-                      className="min-h-[20rem] w-full rounded-md border border-slate-900 px-3 py-2 text-sm outline-none focus:border-blue-700"
-                      placeholder="Gear and carried items"
-                    />
-                    ) : null}
-                  </div>
-
-                  <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Humanity / Cash / Housing
                       </h3>
                       <button
@@ -1937,7 +2296,19 @@ export default function MemberProfileForm({
                         <SheetInput label="Current" value={sheet.humanityTrack.current} onChange={(value) => updateHumanityTrack("current", value)} placeholder="0" />
                         <SheetInput label="Decreased" value={sheet.humanityTrack.decreased} onChange={(value) => updateHumanityTrack("decreased", value)} placeholder="0" />
                         <SheetInput label="Max" value={sheet.humanityTrack.max} onChange={(value) => updateHumanityTrack("max", value)} placeholder="0" />
-                        <SheetInput label="Total HL" value={sheet.humanityTrack.totalHl} onChange={(value) => updateHumanityTrack("totalHl", value)} placeholder="0" />
+                        <label className="block">
+                          <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.2em] text-slate-500">
+                            Total HL
+                          </span>
+                          <input
+                            type="text"
+                            value={sheet.humanityTrack.totalHl}
+                            readOnly
+                            aria-readonly="true"
+                            tabIndex={-1}
+                            className="w-full rounded-md border-2 border-slate-900 bg-slate-50 px-3 py-2 text-sm text-slate-950"
+                          />
+                        </label>
                       </div>
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         <SheetInput label="Cash" value={sheet.economy.cash} onChange={(value) => updateEconomy("cash", value)} placeholder="0" />
@@ -1956,6 +2327,130 @@ export default function MemberProfileForm({
           </div>
 
           <div className="min-w-0 space-y-5">
+            <CollapsibleSection
+              title="INVENTORY"
+              subtitle="Quick access"
+              open={showInventory}
+              onToggle={() => setShowInventory((current) => !current)}
+            >
+              {inventoryEditable ? (
+                <div className="mb-3 rounded-lg border border-slate-300 bg-slate-50 p-3">
+                  <div className="grid gap-2 sm:grid-cols-[0.8fr_1.2fr_auto] sm:items-end">
+                    <label className="block">
+                      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+                        Source
+                      </span>
+                      <select
+                        value={inventorySource}
+                        onChange={(event) => {
+                          const nextSource = event.target.value as "Cyberware" | "Weapons";
+                          setInventorySource(nextSource);
+                          setSelectedInventoryItem("");
+                        }}
+                        className="h-10 w-full rounded-md border border-slate-900 bg-white px-3 text-sm outline-none focus:border-blue-700"
+                      >
+                        <option value="Cyberware">Cyberware</option>
+                        <option value="Weapons">Weapons</option>
+                      </select>
+                    </label>
+
+                    <label className="block">
+                      <span className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+                        Item
+                      </span>
+                      <select
+                        value={selectedInventoryItem}
+                        onChange={(event) => setSelectedInventoryItem(event.target.value)}
+                        className="h-10 w-full rounded-md border border-slate-900 bg-white px-3 text-sm outline-none focus:border-blue-700"
+                      >
+                        <option value="">Select an item...</option>
+                        {inventoryOptions.map((itemOption) => (
+                          <option key={`${itemOption.source}-${itemOption.name}`} value={itemOption.name}>
+                            {itemOption.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={addSelectedItemToInventory}
+                      disabled={!selectedInventoryItem}
+                      className="h-10 rounded-md border border-blue-900 bg-blue-50 px-3 text-xs font-semibold uppercase tracking-[0.08em] text-blue-900 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Add to Inventory
+                    </button>
+                  </div>
+
+                  <div className="mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCustomInventoryModal(true)}
+                      className="h-9 rounded-md border border-slate-900 bg-white px-3 text-xs font-semibold uppercase tracking-[0.08em] text-slate-800 hover:bg-slate-100"
+                    >
+                      Add Custom Item
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="rounded-lg border border-slate-300 bg-slate-50 p-3">
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">
+                  Inventory items
+                </p>
+                {inventoryItems.length > 0 ? (
+                  <ul className="space-y-2 text-sm text-slate-800">
+                    {inventoryItems.map((item, index) => (
+                      <li key={`${item.name}-${index}`} className="flex items-start justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setActiveInventoryItem(item)}
+                          className="text-left underline decoration-dotted underline-offset-2 hover:text-blue-900"
+                        >
+                          {item.name}
+                        </button>
+                        {canEdit ? (
+                          <div className="flex items-center gap-1">
+                            {item.source === "Weapons" || item.source === "Cyberware" ? (
+                              <button
+                                type="button"
+                                onClick={() => equipInventoryItem(item)}
+                                className="rounded border border-blue-300 bg-blue-50 px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-blue-800 hover:bg-blue-100"
+                              >
+                                {isInventoryItemEquipped(item) ? "Unequip" : "Equip"}
+                              </button>
+                            ) : null}
+                            <button
+                              type="button"
+                              onClick={() => removeInventoryItem(index)}
+                              className={`rounded border px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] ${
+                                pendingInventoryRemovalIndex === index
+                                  ? "border-red-700 bg-red-50 text-red-800 hover:bg-red-100"
+                                  : "border-slate-300 bg-white text-slate-700 hover:bg-slate-100"
+                              }`}
+                            >
+                              {pendingInventoryRemovalIndex === index ? "Confirm Remove" : "Remove"}
+                            </button>
+                            {pendingInventoryRemovalIndex === index ? (
+                              <button
+                                type="button"
+                                onClick={() => setPendingInventoryRemovalIndex(null)}
+                                className="rounded border border-slate-300 bg-white px-2 py-0.5 text-[11px] font-semibold uppercase tracking-[0.08em] text-slate-700 hover:bg-slate-100"
+                              >
+                                Cancel
+                              </button>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="text-sm text-slate-500">No inventory items listed.</p>
+                )}
+              </div>
+            </CollapsibleSection>
+
             <CollapsibleSection
               title="SKILLS"
               subtitle="Single-line view"
@@ -2080,27 +2575,103 @@ export default function MemberProfileForm({
           )
         : null}
 
-      {isMounted && activeCyberwareNoteText
+      {isMounted && activeInventoryItem
         ? createPortal(
             <div
               className="fixed inset-0 z-[999] flex items-center justify-center bg-black/55 p-4"
-              onClick={() => setActiveCyberwareNoteText(null)}
+              onClick={() => setActiveInventoryItem(null)}
             >
               <div
                 className="w-full max-w-xl rounded-2xl border-2 border-slate-900 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.35)]"
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="mb-2 flex items-center justify-between gap-3">
-                  <p className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">Cyberware Notes</p>
+                  <p className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">
+                    {activeInventoryItem.name}
+                  </p>
                   <button
                     type="button"
-                    onClick={() => setActiveCyberwareNoteText(null)}
+                    onClick={() => setActiveInventoryItem(null)}
                     className="rounded-md border border-slate-900 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
                   >
                     Close
                   </button>
                 </div>
-                <p className="max-h-[70vh] overflow-y-auto text-sm leading-6 text-slate-800">{activeCyberwareNoteText}</p>
+                <div className="space-y-2 text-sm leading-6 text-slate-800">
+                  <p>
+                    <span className="font-semibold">Source:</span> {activeInventoryItem.source}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Description:</span>{" "}
+                    {activeInventoryItem.description.trim().length > 0
+                      ? activeInventoryItem.description
+                      : "No additional description."}
+                  </p>
+                  {canEdit && (activeInventoryItem.source === "Weapons" || activeInventoryItem.source === "Cyberware") ? (
+                    <div className="pt-1">
+                      <button
+                        type="button"
+                        onClick={() => equipInventoryItem(activeInventoryItem)}
+                        className="rounded-md border border-blue-300 bg-blue-50 px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] text-blue-800 hover:bg-blue-100"
+                      >
+                        {isInventoryItemEquipped(activeInventoryItem) ? "Unequip from Sheet" : "Equip to Sheet"}
+                      </button>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+            </div>,
+            document.body,
+          )
+        : null}
+
+      {isMounted && showCustomInventoryModal
+        ? createPortal(
+            <div
+              className="fixed inset-0 z-[999] flex items-center justify-center bg-black/55 p-4"
+              onClick={() => setShowCustomInventoryModal(false)}
+            >
+              <div
+                className="w-full max-w-xl rounded-2xl border-2 border-slate-900 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.35)]"
+                onClick={(event) => event.stopPropagation()}
+              >
+                <div className="mb-3 flex items-center justify-between gap-3">
+                  <p className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-900">
+                    Add Custom Inventory Item
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setShowCustomInventoryModal(false)}
+                    className="rounded-md border border-slate-900 px-2 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100"
+                  >
+                    Close
+                  </button>
+                </div>
+                <div className="space-y-3">
+                  <SheetInput
+                    label="Item name"
+                    value={customInventoryName}
+                    onChange={setCustomInventoryName}
+                    placeholder="Example: Concealed Med Injector"
+                  />
+                  <SheetTextarea
+                    label="Description"
+                    value={customInventoryDescription}
+                    onChange={setCustomInventoryDescription}
+                    rows={5}
+                    placeholder="Add all details you want shown when clicked"
+                  />
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={addCustomInventoryItem}
+                      disabled={customInventoryName.trim().length === 0}
+                      className="rounded-md border border-blue-900 bg-blue-50 px-3 py-2 text-xs font-semibold uppercase tracking-[0.08em] text-blue-900 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      Save Item
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>,
             document.body,

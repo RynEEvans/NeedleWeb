@@ -28,7 +28,6 @@
         "location": "",
         "armorSp": "",
         "save": "",
-        "btm": "",
         "body": {
           "Head": "",
           "Torso": "",
@@ -426,7 +425,6 @@
         "location": "North Gate",
         "armorSp": "18",
         "save": "9",
-        "btm": "-2",
         "body": {
           "Head": "5",
           "Torso": "18",
@@ -530,12 +528,6 @@
           "name": "Techhair",
           "type": "Fashionware",
           "notes": "Color-light-emitting artificial hair. +2 to Personal Grooming if user also has Chemskin.",
-          "hl": "0"
-        },
-        {
-          "name": "Chemskin",
-          "type": "Fashionware",
-          "notes": "Dyes and pigments infused into the skin to permanently change its hue. +2 to Personal Grooming if user also has Techhair.",
           "hl": "0"
         }
       ],
@@ -758,7 +750,6 @@
         "location": "",
         "armorSp": "",
         "save": "",
-        "btm": "",
         "body": {
           "Head": "",
           "Torso": "",

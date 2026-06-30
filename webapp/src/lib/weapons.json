@@ -1,0 +1,182 @@
+{
+  "source": {
+    "melee": "Reference-MeleeWeapons.pdf",
+    "ranged": "Reference-RangedWeapons.pdf"
+  },
+  "melee": [
+    {
+      "weaponType": "Light Melee Weapon",
+      "examples": ["Combat Knife", "Tomahawk"],
+      "handsRequired": "Varies by type",
+      "damage": "1d6",
+      "rof": 2,
+      "canBeConcealed": true,
+      "cost": "50eb",
+      "priceCategory": "Costly"
+    },
+    {
+      "weaponType": "Medium Melee Weapon",
+      "examples": ["Baseball Bat", "Crowbar", "Machete"],
+      "handsRequired": "Varies by type",
+      "damage": "2d6",
+      "rof": 2,
+      "canBeConcealed": false,
+      "cost": "50eb",
+      "priceCategory": "Costly"
+    },
+    {
+      "weaponType": "Heavy Melee Weapon",
+      "examples": ["Lead Pipe", "Sword", "Spiked Bat"],
+      "handsRequired": "Varies by type",
+      "damage": "3d6",
+      "rof": 2,
+      "canBeConcealed": false,
+      "cost": "100eb",
+      "priceCategory": "Premium"
+    },
+    {
+      "weaponType": "Very Heavy Melee Weapon",
+      "examples": ["Chainsaw", "Sledgehammer", "Helicopter Blades", "Naginata"],
+      "handsRequired": "Varies by type",
+      "damage": "4d6",
+      "rof": 1,
+      "canBeConcealed": false,
+      "cost": "500eb",
+      "priceCategory": "Expensive"
+    }
+  ],
+  "ranged": [
+    {
+      "weaponType": "Medium Pistol",
+      "weaponSkill": "Handgun",
+      "singleShotDamage": "2d6",
+      "standardMagazine": "12 (M Pistol)",
+      "rof": 2,
+      "handsRequired": 1,
+      "canBeConcealed": true,
+      "cost": "50eb",
+      "priceCategory": "Costly",
+      "specialFeatures": ["None"]
+    },
+    {
+      "weaponType": "Heavy Pistol",
+      "weaponSkill": "Handgun",
+      "singleShotDamage": "3d6",
+      "standardMagazine": "8 (H Pistol)",
+      "rof": 2,
+      "handsRequired": 1,
+      "canBeConcealed": true,
+      "cost": "100eb",
+      "priceCategory": "Premium",
+      "specialFeatures": ["None"]
+    },
+    {
+      "weaponType": "Very Heavy Pistol",
+      "weaponSkill": "Handgun",
+      "singleShotDamage": "4d6",
+      "standardMagazine": "8 (VH Pistol)",
+      "rof": 1,
+      "handsRequired": 1,
+      "canBeConcealed": false,
+      "cost": "100eb",
+      "priceCategory": "Premium",
+      "specialFeatures": ["None"]
+    },
+    {
+      "weaponType": "SMG",
+      "weaponSkill": "Handgun",
+      "singleShotDamage": "2d6",
+      "standardMagazine": "30 (M Pistol)",
+      "rof": 1,
+      "handsRequired": 1,
+      "canBeConcealed": true,
+      "cost": "100eb",
+      "priceCategory": "Premium",
+      "specialFeatures": ["Autofire (3)", "Suppressive Fire"]
+    },
+    {
+      "weaponType": "Heavy SMG",
+      "weaponSkill": "Handgun",
+      "singleShotDamage": "3d6",
+      "standardMagazine": "40 (H Pistol)",
+      "rof": 1,
+      "handsRequired": 1,
+      "canBeConcealed": false,
+      "cost": "100eb",
+      "priceCategory": "Premium",
+      "specialFeatures": ["Autofire (3)", "Suppressive Fire"]
+    },
+    {
+      "weaponType": "Shotgun",
+      "weaponSkill": "Shoulder Arms",
+      "singleShotDamage": "5d6",
+      "standardMagazine": "4 (Slug)",
+      "rof": 1,
+      "handsRequired": 2,
+      "canBeConcealed": false,
+      "cost": "500eb",
+      "priceCategory": "Expensive",
+      "specialFeatures": ["Shotgun Shell"]
+    },
+    {
+      "weaponType": "Assault Rifle",
+      "weaponSkill": "Shoulder Arms",
+      "singleShotDamage": "5d6",
+      "standardMagazine": "25 (Rifle)",
+      "rof": 1,
+      "handsRequired": 2,
+      "canBeConcealed": false,
+      "cost": "500eb",
+      "priceCategory": "Expensive",
+      "specialFeatures": ["Autofire (4)", "Suppressive Fire"]
+    },
+    {
+      "weaponType": "Sniper Rifle",
+      "weaponSkill": "Shoulder Arms",
+      "singleShotDamage": "5d6",
+      "standardMagazine": "4 (Rifle)",
+      "rof": 1,
+      "handsRequired": 2,
+      "canBeConcealed": false,
+      "cost": "500eb",
+      "priceCategory": "Expensive",
+      "specialFeatures": ["None"]
+    },
+    {
+      "weaponType": "Bows & Crossbows",
+      "weaponSkill": "Archery",
+      "singleShotDamage": "4d6",
+      "standardMagazine": "N/A (Arrow)",
+      "rof": 1,
+      "handsRequired": 2,
+      "canBeConcealed": false,
+      "cost": "100eb",
+      "priceCategory": "Premium",
+      "specialFeatures": ["Arrows"]
+    },
+    {
+      "weaponType": "Grenade Launcher",
+      "weaponSkill": "Heavy Weapons",
+      "singleShotDamage": "6d6",
+      "standardMagazine": "2 (Grenade)",
+      "rof": 1,
+      "handsRequired": 2,
+      "canBeConcealed": false,
+      "cost": "500eb",
+      "priceCategory": "Expensive",
+      "specialFeatures": ["Explosive"]
+    },
+    {
+      "weaponType": "Rocket Launcher",
+      "weaponSkill": "Heavy Weapons",
+      "singleShotDamage": "8d6",
+      "standardMagazine": "1 (Rocket)",
+      "rof": 1,
+      "handsRequired": 2,
+      "canBeConcealed": false,
+      "cost": "500eb",
+      "priceCategory": "Expensive",
+      "specialFeatures": ["Explosive"]
+    }
+  ]
+}

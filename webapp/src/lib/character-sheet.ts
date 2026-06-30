@@ -54,6 +54,11 @@ export const DEFAULT_WEAPONS_ARMOR_ROW_COUNT = 8;
 export const DEFAULT_CYBERNETIC_ROW_COUNT = 10;
 
 export type CharacterSheet = {
+  inventoryItems: Array<{
+    name: string;
+    source: "Cyberware" | "Weapons" | "Custom";
+    description: string;
+  }>;
   handle: string;
   description: string;
   portraitUrl: string;
@@ -62,7 +67,7 @@ export type CharacterSheet = {
     location: string;
     armorSp: string;
     save: string;
-    btm: string;
+    currentHp: string;
     body: Record<(typeof BODY_KEYS)[number], string>;
   };
   weaponRows: Array<{
@@ -145,6 +150,7 @@ export function createEmptyCharacterSheet(): CharacterSheet {
   );
 
   return {
+    inventoryItems: [],
     handle: "",
     description: "",
     portraitUrl: "",
@@ -153,7 +159,7 @@ export function createEmptyCharacterSheet(): CharacterSheet {
       location: "",
       armorSp: "",
       save: "",
-      btm: "",
+      currentHp: "",
       body,
     },
     weaponRows: Array.from({ length: DEFAULT_WEAPON_ROW_COUNT }, () => ({
