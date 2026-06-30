@@ -25,7 +25,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const requests = getPublicSignupRequests();
+  const requests = await getPublicSignupRequests();
   return NextResponse.json({ requests });
 }
 
@@ -51,11 +51,11 @@ export async function PATCH(request: Request) {
 
   try {
     if (body.action === "approve") {
-      const user = approveSignupRequest(requestId, claims.username);
+      const user = await approveSignupRequest(requestId, claims.username);
       return NextResponse.json({ ok: true, user });
     }
 
-    const requestRecord = rejectSignupRequest(requestId, claims.username);
+    const requestRecord = await rejectSignupRequest(requestId, claims.username);
     return NextResponse.json({ ok: true, request: requestRecord });
   } catch (error) {
     const messageText = error instanceof Error ? error.message : "Unable to process approval.";
@@ -93,13 +93,13 @@ export async function POST(request: Request) {
 
   try {
     if (action === "approve") {
-      const user = approveSignupRequest(requestId, claims.username);
+      const user = await approveSignupRequest(requestId, claims.username);
       const redirectUrl = new URL("/admin", request.url);
       redirectUrl.searchParams.set("success", `Approved ${user.username}.`);
       return NextResponse.redirect(redirectUrl, 303);
     }
 
-    const rejected = rejectSignupRequest(requestId, claims.username);
+    const rejected = await rejectSignupRequest(requestId, claims.username);
     const redirectUrl = new URL("/admin", request.url);
     redirectUrl.searchParams.set("success", `Rejected request from ${rejected.username}.`);
     return NextResponse.redirect(redirectUrl, 303);

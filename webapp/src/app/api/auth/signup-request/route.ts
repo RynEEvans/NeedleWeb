@@ -39,7 +39,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const signupRequest = createSignupRequest({
+    const signupRequest = await createSignupRequest({
       username: username ?? "",
       email: email ?? "",
       password: password ?? "",

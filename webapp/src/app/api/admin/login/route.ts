@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const adminUser = findAdminUser(username);
+  const adminUser = await findAdminUser(username);
   if (!adminUser || adminUser.password !== password) {
     return NextResponse.json(
       { error: "Invalid admin credentials." },

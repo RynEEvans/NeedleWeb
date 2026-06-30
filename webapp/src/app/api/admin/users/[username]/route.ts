@@ -30,7 +30,7 @@ export async function PATCH(
   }
 
   const { username } = await params;
-  const targetUser = findUserByUsername(username);
+  const targetUser = await findUserByUsername(username);
   if (!targetUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -47,7 +47,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Sheet is required." }, { status: 400 });
   }
 
-  const updatedUser = updateMemberSheetByUsername(username, { sheet: body.sheet });
+  const updatedUser = await updateMemberSheetByUsername(username, { sheet: body.sheet });
   if (!updatedUser) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }

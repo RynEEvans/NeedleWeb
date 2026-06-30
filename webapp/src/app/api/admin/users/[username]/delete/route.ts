@@ -47,7 +47,7 @@ export async function POST(
   }
 
   try {
-    const deletedUser = deleteUserByUsername(username);
+    const deletedUser = await deleteUserByUsername(username);
 
     if (expectsRedirect) {
       const redirectUrl = new URL("/admin", request.url);

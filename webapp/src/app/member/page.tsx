@@ -17,7 +17,7 @@ export default async function MemberPage() {
     redirect("/admin");
   }
 
-  const user = getPublicUserByUsername(claims.username);
+  const user = await getPublicUserByUsername(claims.username);
   if (!user) {
     redirect("/sign-in");
   }

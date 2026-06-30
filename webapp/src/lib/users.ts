@@ -1,16 +1,5 @@
-import { mkdirSync, readFileSync, writeFileSync } from "fs";
-import { dirname, join } from "path";
 import { CharacterSheet, createEmptyCharacterSheet } from "@/lib/character-sheet";
-
-const SOURCE_DATA_DIR = join(process.cwd(), "data");
-const RUNTIME_DATA_DIR =
-  process.env.DATA_DIR?.trim() ||
-  (process.env.VERCEL ? join("/tmp", "needleweb-data") : SOURCE_DATA_DIR);
-
-const USERS_SOURCE_DATA_PATH = join(SOURCE_DATA_DIR, "users.json");
-const USERS_RUNTIME_DATA_PATH = join(RUNTIME_DATA_DIR, "users.json");
-const SIGNUP_REQUESTS_SOURCE_DATA_PATH = join(SOURCE_DATA_DIR, "signup-requests.json");
-const SIGNUP_REQUESTS_RUNTIME_DATA_PATH = join(RUNTIME_DATA_DIR, "signup-requests.json");
+import { db, query } from "@/lib/db";
 
 export type UserRecord = {
   id: number;
@@ -42,72 +31,64 @@ export type SignupRequestRecord = {
 
 export type PublicSignupRequest = Omit<SignupRequestRecord, "password">;
 
-function loadUsers(): UserRecord[] {
-  const candidates = Array.from(new Set([USERS_RUNTIME_DATA_PATH, USERS_SOURCE_DATA_PATH]));
+type UserRow = {
+  id: number;
+  username: string;
+  password: string;
+  email: string;
+  role: UserRecord["role"];
+  status: UserRecord["status"];
+  joined_date: string;
+  last_active: string | null;
+  sheet: CharacterSheet;
+};
 
-  for (const candidatePath of candidates) {
-    try {
-      const fileContents = readFileSync(candidatePath, "utf8");
-      return JSON.parse(fileContents) as UserRecord[];
-    } catch {
-      // Try the next candidate path.
-    }
-  }
-
-  const fallbackUsers = [] as UserRecord[];
-  persistJsonFile(USERS_RUNTIME_DATA_PATH, fallbackUsers);
-  return fallbackUsers;
-}
-
-function readUsers(): UserRecord[] {
-  return loadUsers();
-}
-
-function loadSignupRequests(): SignupRequestRecord[] {
-  const candidates = Array.from(
-    new Set([SIGNUP_REQUESTS_RUNTIME_DATA_PATH, SIGNUP_REQUESTS_SOURCE_DATA_PATH]),
-  );
-
-  for (const candidatePath of candidates) {
-    try {
-      const fileContents = readFileSync(candidatePath, "utf8");
-      return JSON.parse(fileContents) as SignupRequestRecord[];
-    } catch {
-      // Try the next candidate path.
-    }
-  }
-
-  const fallbackRequests = [] as SignupRequestRecord[];
-  persistJsonFile(SIGNUP_REQUESTS_RUNTIME_DATA_PATH, fallbackRequests);
-  return fallbackRequests;
-}
-
-function persistJsonFile(path: string, data: unknown) {
-  try {
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, JSON.stringify(data, null, 2), "utf8");
-  } catch {
-    // Avoid hard crashes when the deployment filesystem is read-only.
-  }
-}
-
-function readSignupRequests(): SignupRequestRecord[] {
-  return loadSignupRequests();
-}
-
-function persistUsers() {
-  persistJsonFile(USERS_RUNTIME_DATA_PATH, users);
-}
-
-function persistSignupRequests() {
-  persistJsonFile(SIGNUP_REQUESTS_RUNTIME_DATA_PATH, signupRequests);
-}
-
-let users: UserRecord[] = loadUsers();
-let signupRequests: SignupRequestRecord[] = loadSignupRequests();
+type SignupRequestRow = {
+  id: number;
+  username: string;
+  email: string;
+  password: string;
+  message: string;
+  requested_at: string;
+  status: SignupRequestRecord["status"];
+  approved_by: string | null;
+  approved_at: string | null;
+  rejected_by: string | null;
+  rejected_at: string | null;
+};
 
 function normalizeUsername(value: string): string {
   return value.trim().toLowerCase();
+}
+
+function mapUserRow(row: UserRow): UserRecord {
+  return {
+    id: row.id,
+    username: row.username,
+    password: row.password,
+    email: row.email,
+    role: row.role,
+    status: row.status,
+    joinedDate: row.joined_date,
+    lastActive: row.last_active,
+    sheet: row.sheet,
+  };
+}
+
+function mapSignupRequestRow(row: SignupRequestRow): SignupRequestRecord {
+  return {
+    id: row.id,
+    username: row.username,
+    email: row.email,
+    password: row.password,
+    message: row.message,
+    requestedAt: row.requested_at,
+    status: row.status,
+    approvedBy: row.approved_by ?? undefined,
+    approvedAt: row.approved_at ?? undefined,
+    rejectedBy: row.rejected_by ?? undefined,
+    rejectedAt: row.rejected_at ?? undefined,
+  };
 }
 
 function toPublicUser(user: UserRecord): PublicUser {
@@ -122,58 +103,51 @@ function toPublicSignupRequest(request: SignupRequestRecord): PublicSignupReques
   return publicRequest;
 }
 
-function getNextUserId() {
-  return users.reduce((maxId, user) => Math.max(maxId, user.id), 0) + 1;
+export async function getPublicUsers(): Promise<PublicUser[]> {
+  const rows = await query<UserRow>("SELECT * FROM users ORDER BY id ASC");
+  return rows.map((row) => toPublicUser(mapUserRow(row)));
 }
 
-function getNextSignupRequestId() {
-  return signupRequests.reduce((maxId, request) => Math.max(maxId, request.id), 0) + 1;
+export async function getPublicSignupRequests(): Promise<PublicSignupRequest[]> {
+  const rows = await query<SignupRequestRow>("SELECT * FROM signup_requests ORDER BY id ASC");
+  return rows.map((row) => toPublicSignupRequest(mapSignupRequestRow(row)));
 }
 
-export function getPublicUsers(): PublicUser[] {
-  users = readUsers();
-  return users.map((user) => toPublicUser(user));
-}
-
-export function getPublicSignupRequests(): PublicSignupRequest[] {
-  signupRequests = readSignupRequests();
-  return signupRequests.map((request) => toPublicSignupRequest(request));
-}
-
-export function findAdminUser(username: string): UserRecord | undefined {
-  users = readUsers();
-  const normalizedUsername = normalizeUsername(username);
-  return users.find(
-    (user) => user.role === "Admin" && normalizeUsername(user.username) === normalizedUsername,
+export async function findAdminUser(username: string): Promise<UserRecord | undefined> {
+  const rows = await query<UserRow>(
+    "SELECT * FROM users WHERE role = 'Admin' AND lower(username) = $1 LIMIT 1",
+    [normalizeUsername(username)],
   );
+
+  return rows[0] ? mapUserRow(rows[0]) : undefined;
 }
 
-export function findUserByUsername(username: string): UserRecord | undefined {
-  users = readUsers();
-  const normalizedUsername = normalizeUsername(username);
-  return users.find((user) => normalizeUsername(user.username) === normalizedUsername);
+export async function findUserByUsername(username: string): Promise<UserRecord | undefined> {
+  const rows = await query<UserRow>("SELECT * FROM users WHERE lower(username) = $1 LIMIT 1", [
+    normalizeUsername(username),
+  ]);
+
+  return rows[0] ? mapUserRow(rows[0]) : undefined;
 }
 
-export function findUserByCredentials(
+export async function findUserByCredentials(
   username: string,
   password: string,
-): UserRecord | undefined {
-  users = readUsers();
-  const normalizedUsername = normalizeUsername(username);
-  return users.find(
-    (user) => normalizeUsername(user.username) === normalizedUsername && user.password === password,
+): Promise<UserRecord | undefined> {
+  const rows = await query<UserRow>(
+    "SELECT * FROM users WHERE lower(username) = $1 AND password = $2 LIMIT 1",
+    [normalizeUsername(username), password],
   );
+
+  return rows[0] ? mapUserRow(rows[0]) : undefined;
 }
 
-export function createSignupRequest(input: {
+export async function createSignupRequest(input: {
   username: string;
   email: string;
   password: string;
   message?: string;
-}): PublicSignupRequest {
-  users = readUsers();
-  signupRequests = readSignupRequests();
-
+}): Promise<PublicSignupRequest> {
   const normalizedUsername = normalizeUsername(input.username);
   const normalizedEmail = input.email.trim().toLowerCase();
 
@@ -181,91 +155,119 @@ export function createSignupRequest(input: {
     throw new Error("Username, email, and password are required.");
   }
 
-  if (users.some((user) => normalizeUsername(user.username) === normalizedUsername)) {
+  const usernameTaken = await query<{ exists: boolean }>(
+    "SELECT EXISTS(SELECT 1 FROM users WHERE lower(username) = $1) AS exists",
+    [normalizedUsername],
+  );
+  if (usernameTaken[0]?.exists) {
     throw new Error("Username is already taken.");
   }
 
-  if (users.some((user) => user.email.trim().toLowerCase() === normalizedEmail)) {
+  const emailTaken = await query<{ exists: boolean }>(
+    "SELECT EXISTS(SELECT 1 FROM users WHERE lower(email) = $1) AS exists",
+    [normalizedEmail],
+  );
+  if (emailTaken[0]?.exists) {
     throw new Error("Email is already in use.");
   }
 
-  if (
-    signupRequests.some(
-      (request) =>
-        request.status === "Pending" &&
-        (normalizeUsername(request.username) === normalizedUsername ||
-          request.email.trim().toLowerCase() === normalizedEmail),
-    )
-  ) {
+  const pendingExists = await query<{ exists: boolean }>(
+    `SELECT EXISTS(
+      SELECT 1 FROM signup_requests
+      WHERE status = 'Pending' AND (lower(username) = $1 OR lower(email) = $2)
+    ) AS exists`,
+    [normalizedUsername, normalizedEmail],
+  );
+  if (pendingExists[0]?.exists) {
     throw new Error("A pending signup request already exists for this username or email.");
   }
 
-  const createdRequest: SignupRequestRecord = {
-    id: getNextSignupRequestId(),
-    username: input.username.trim(),
-    email: input.email.trim(),
-    password: input.password,
-    message: input.message?.trim() ?? "",
-    requestedAt: new Date().toISOString(),
-    status: "Pending",
-  };
+  const rows = await query<SignupRequestRow>(
+    `INSERT INTO signup_requests (
+      username, email, password, message, requested_at, status
+    ) VALUES ($1, $2, $3, $4, NOW(), 'Pending') RETURNING *`,
+    [input.username.trim(), input.email.trim(), input.password, input.message?.trim() ?? ""],
+  );
 
-  signupRequests.push(createdRequest);
-  persistSignupRequests();
-  return toPublicSignupRequest(createdRequest);
+  return toPublicSignupRequest(mapSignupRequestRow(rows[0]));
 }
 
-export function approveSignupRequest(requestId: number, reviewerUsername: string): PublicUser {
-  users = readUsers();
-  signupRequests = readSignupRequests();
+export async function approveSignupRequest(
+  requestId: number,
+  reviewerUsername: string,
+): Promise<PublicUser> {
+  const client = await db.connect();
 
-  const request = signupRequests.find((item) => item.id === requestId);
-  if (!request) {
-    throw new Error("Signup request not found.");
+  try {
+    await client.query("BEGIN");
+
+    const requestRows = await client.query<SignupRequestRow>(
+      "SELECT * FROM signup_requests WHERE id = $1 FOR UPDATE",
+      [requestId],
+    );
+    const request = requestRows.rows[0];
+
+    if (!request) {
+      throw new Error("Signup request not found.");
+    }
+
+    if (request.status !== "Pending") {
+      throw new Error("Only pending signup requests can be approved.");
+    }
+
+    const normalizedUsername = normalizeUsername(request.username);
+    const normalizedEmail = request.email.trim().toLowerCase();
+
+    const usernameConflict = await client.query<{ exists: boolean }>(
+      "SELECT EXISTS(SELECT 1 FROM users WHERE lower(username) = $1) AS exists",
+      [normalizedUsername],
+    );
+    if (usernameConflict.rows[0]?.exists) {
+      throw new Error("Cannot approve request: username already exists.");
+    }
+
+    const emailConflict = await client.query<{ exists: boolean }>(
+      "SELECT EXISTS(SELECT 1 FROM users WHERE lower(email) = $1) AS exists",
+      [normalizedEmail],
+    );
+    if (emailConflict.rows[0]?.exists) {
+      throw new Error("Cannot approve request: email already exists.");
+    }
+
+    const userInsert = await client.query<UserRow>(
+      `INSERT INTO users (
+        username, password, email, role, status, joined_date, last_active, sheet
+      ) VALUES ($1, $2, $3, 'Member', 'Active', CURRENT_DATE, NULL, $4::jsonb)
+      RETURNING *`,
+      [request.username, request.password, request.email, JSON.stringify(createEmptyCharacterSheet())],
+    );
+
+    await client.query(
+      `UPDATE signup_requests
+       SET status = 'Approved', approved_by = $2, approved_at = NOW(), rejected_by = NULL, rejected_at = NULL
+       WHERE id = $1`,
+      [requestId, reviewerUsername],
+    );
+
+    await client.query("COMMIT");
+    return toPublicUser(mapUserRow(userInsert.rows[0]));
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
   }
-
-  if (request.status !== "Pending") {
-    throw new Error("Only pending signup requests can be approved.");
-  }
-
-  const normalizedUsername = normalizeUsername(request.username);
-  const normalizedEmail = request.email.trim().toLowerCase();
-
-  if (users.some((user) => normalizeUsername(user.username) === normalizedUsername)) {
-    throw new Error("Cannot approve request: username already exists.");
-  }
-
-  if (users.some((user) => user.email.trim().toLowerCase() === normalizedEmail)) {
-    throw new Error("Cannot approve request: email already exists.");
-  }
-
-  const createdUser: UserRecord = {
-    id: getNextUserId(),
-    username: request.username,
-    password: request.password,
-    email: request.email,
-    role: "Member",
-    status: "Active",
-    joinedDate: new Date().toISOString().slice(0, 10),
-    lastActive: null,
-    sheet: createEmptyCharacterSheet(),
-  };
-
-  users.push(createdUser);
-  request.status = "Approved";
-  request.approvedBy = reviewerUsername;
-  request.approvedAt = new Date().toISOString();
-  delete request.rejectedBy;
-  delete request.rejectedAt;
-  persistUsers();
-  persistSignupRequests();
-  return toPublicUser(createdUser);
 }
 
-export function rejectSignupRequest(requestId: number, reviewerUsername: string): PublicSignupRequest {
-  signupRequests = readSignupRequests();
+export async function rejectSignupRequest(
+  requestId: number,
+  reviewerUsername: string,
+): Promise<PublicSignupRequest> {
+  const rows = await query<SignupRequestRow>("SELECT * FROM signup_requests WHERE id = $1 LIMIT 1", [
+    requestId,
+  ]);
+  const request = rows[0];
 
-  const request = signupRequests.find((item) => item.id === requestId);
   if (!request) {
     throw new Error("Signup request not found.");
   }
@@ -274,23 +276,22 @@ export function rejectSignupRequest(requestId: number, reviewerUsername: string)
     throw new Error("Only pending signup requests can be rejected.");
   }
 
-  request.status = "Rejected";
-  request.rejectedBy = reviewerUsername;
-  request.rejectedAt = new Date().toISOString();
-  delete request.approvedBy;
-  delete request.approvedAt;
-  persistSignupRequests();
-  return toPublicSignupRequest(request);
+  const updated = await query<SignupRequestRow>(
+    `UPDATE signup_requests
+     SET status = 'Rejected', rejected_by = $2, rejected_at = NOW(), approved_by = NULL, approved_at = NULL
+     WHERE id = $1
+     RETURNING *`,
+    [requestId, reviewerUsername],
+  );
+
+  return toPublicSignupRequest(mapSignupRequestRow(updated[0]));
 }
 
-export function createMemberUser(input: {
+export async function createMemberUser(input: {
   username: string;
   email: string;
   password: string;
-}): PublicUser {
-  users = readUsers();
-  signupRequests = readSignupRequests();
-
+}): Promise<PublicUser> {
   const normalizedUsername = normalizeUsername(input.username);
   const normalizedEmail = input.email.trim().toLowerCase();
 
@@ -298,103 +299,116 @@ export function createMemberUser(input: {
     throw new Error("Username, email, and password are required.");
   }
 
-  if (users.some((user) => normalizeUsername(user.username) === normalizedUsername)) {
-    throw new Error("Username is already taken.");
-  }
+  const client = await db.connect();
 
-  if (users.some((user) => user.email.trim().toLowerCase() === normalizedEmail)) {
-    throw new Error("Email is already in use.");
-  }
+  try {
+    await client.query("BEGIN");
 
-  const createdUser: UserRecord = {
-    id: getNextUserId(),
-    username: input.username.trim(),
-    password: input.password,
-    email: input.email.trim(),
-    role: "Member",
-    status: "Active",
-    joinedDate: new Date().toISOString().slice(0, 10),
-    lastActive: null,
-    sheet: createEmptyCharacterSheet(),
-  };
-
-  users.push(createdUser);
-  persistUsers();
-
-  for (const request of signupRequests) {
-    if (
-      request.status === "Pending" &&
-      (normalizeUsername(request.username) === normalizedUsername ||
-        request.email.trim().toLowerCase() === normalizedEmail)
-    ) {
-      request.status = "Approved";
-      request.approvedBy = "System";
-      request.approvedAt = new Date().toISOString();
-      delete request.rejectedBy;
-      delete request.rejectedAt;
+    const usernameTaken = await client.query<{ exists: boolean }>(
+      "SELECT EXISTS(SELECT 1 FROM users WHERE lower(username) = $1) AS exists",
+      [normalizedUsername],
+    );
+    if (usernameTaken.rows[0]?.exists) {
+      throw new Error("Username is already taken.");
     }
-  }
-  persistSignupRequests();
 
-  return toPublicUser(createdUser);
+    const emailTaken = await client.query<{ exists: boolean }>(
+      "SELECT EXISTS(SELECT 1 FROM users WHERE lower(email) = $1) AS exists",
+      [normalizedEmail],
+    );
+    if (emailTaken.rows[0]?.exists) {
+      throw new Error("Email is already in use.");
+    }
+
+    const createdUser = await client.query<UserRow>(
+      `INSERT INTO users (
+        username, password, email, role, status, joined_date, last_active, sheet
+      ) VALUES ($1, $2, $3, 'Member', 'Active', CURRENT_DATE, NULL, $4::jsonb)
+      RETURNING *`,
+      [
+        input.username.trim(),
+        input.password,
+        input.email.trim(),
+        JSON.stringify(createEmptyCharacterSheet()),
+      ],
+    );
+
+    await client.query(
+      `UPDATE signup_requests
+       SET status = 'Approved', approved_by = 'System', approved_at = NOW(), rejected_by = NULL, rejected_at = NULL
+       WHERE status = 'Pending' AND (lower(username) = $1 OR lower(email) = $2)`,
+      [normalizedUsername, normalizedEmail],
+    );
+
+    await client.query("COMMIT");
+    return toPublicUser(mapUserRow(createdUser.rows[0]));
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 
-export function deleteUserByUsername(username: string): PublicUser {
-  users = readUsers();
-  const normalizedUsername = normalizeUsername(username);
+export async function deleteUserByUsername(username: string): Promise<PublicUser> {
+  const deleted = await query<UserRow>(
+    "DELETE FROM users WHERE lower(username) = $1 AND role <> 'Admin' RETURNING *",
+    [normalizeUsername(username)],
+  );
 
-  const index = users.findIndex((user) => normalizeUsername(user.username) === normalizedUsername);
-  if (index === -1) {
+  if (deleted[0]) {
+    return toPublicUser(mapUserRow(deleted[0]));
+  }
+
+  const existing = await query<{ role: UserRecord["role"] }>(
+    "SELECT role FROM users WHERE lower(username) = $1 LIMIT 1",
+    [normalizeUsername(username)],
+  );
+
+  if (!existing[0]) {
     throw new Error("User not found.");
   }
 
-  const user = users[index];
-  if (user.role === "Admin") {
+  if (existing[0].role === "Admin") {
     throw new Error("Admin users cannot be deleted.");
   }
 
-  users.splice(index, 1);
-  persistUsers();
-  return toPublicUser(user);
+  throw new Error("Unable to delete user.");
 }
 
-export function getPublicUserByUsername(username: string): PublicUser | undefined {
-  const user = findUserByUsername(username);
-  if (!user) {
-    return undefined;
-  }
-
-  return toPublicUser(user);
+export async function getPublicUserByUsername(username: string): Promise<PublicUser | undefined> {
+  const user = await findUserByUsername(username);
+  return user ? toPublicUser(user) : undefined;
 }
 
-export function updateMemberSheetByUsername(
+export async function updateMemberSheetByUsername(
   username: string,
   updates: {
     email?: string;
     status?: "Active" | "Inactive";
     sheet?: CharacterSheet;
   },
-): PublicUser | undefined {
-  users = readUsers();
-  const user = findUserByUsername(username);
-  if (!user) {
+): Promise<PublicUser | undefined> {
+  const rows = await query<UserRow>(
+    `UPDATE users
+     SET
+       email = COALESCE($2, email),
+       status = COALESCE($3, status),
+       sheet = COALESCE($4::jsonb, sheet),
+       last_active = NOW()
+     WHERE lower(username) = $1
+     RETURNING *`,
+    [
+      normalizeUsername(username),
+      updates.email ?? null,
+      updates.status ?? null,
+      updates.sheet ? JSON.stringify(updates.sheet) : null,
+    ],
+  );
+
+  if (!rows[0]) {
     return undefined;
   }
 
-  if (updates.email) {
-    user.email = updates.email;
-  }
-
-  if (updates.status) {
-    user.status = updates.status;
-  }
-
-  if (updates.sheet) {
-    user.sheet = updates.sheet;
-  }
-
-  user.lastActive = new Date().toISOString();
-  persistUsers();
-
-  return toPublicUser(user);
+  return toPublicUser(mapUserRow(rows[0]));
 }

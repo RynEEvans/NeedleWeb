@@ -28,7 +28,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = getPublicUserByUsername(claims.username);
+  const user = await getPublicUserByUsername(claims.username);
   if (!user) {
     return NextResponse.json({ error: "User not found" }, { status: 404 });
   }
@@ -65,7 +65,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid status." }, { status: 400 });
   }
 
-  const updatedUser = updateMemberSheetByUsername(claims.username, {
+  const updatedUser = await updateMemberSheetByUsername(claims.username, {
     email,
     status,
     sheet,

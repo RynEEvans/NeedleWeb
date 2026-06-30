@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     return redirectWithError("Username and password are required.", 400);
   }
 
-  const user = findUserByCredentials(username, password);
+  const user = await findUserByCredentials(username, password);
   if (!user) {
     return redirectWithError("Invalid credentials.", 401);
   }

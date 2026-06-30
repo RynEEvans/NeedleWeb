@@ -40,7 +40,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const user = createMemberUser({
+    const user = await createMemberUser({
       username: body.username ?? "",
       email: body.email ?? "",
       password: body.password ?? "",

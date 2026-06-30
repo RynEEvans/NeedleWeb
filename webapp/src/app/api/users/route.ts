@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ users: getPublicUsers() });
+  return NextResponse.json({ users: await getPublicUsers() });
 }
 
 

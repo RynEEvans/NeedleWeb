@@ -19,8 +19,8 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     redirect("/sign-in");
   }
 
-  const users = getPublicUsers();
-  const signupRequests = getPublicSignupRequests();
+  const users = await getPublicUsers();
+  const signupRequests = await getPublicSignupRequests();
   const pendingSignupRequests = signupRequests.filter((request) => request.status === "Pending");
   const reviewedSignupRequests = signupRequests
     .filter((request) => request.status !== "Pending")
