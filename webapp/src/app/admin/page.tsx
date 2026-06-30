@@ -21,7 +21,7 @@ export default async function AdminPage() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-full border border-white/60 bg-[var(--surface)] px-5 py-3 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-md">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-teal-800">
+              <p className="text-sm font-semibold uppercase tracking-[0.35em] text-blue-900">
               Game Master console
             </p>
             <p className="text-sm text-[var(--muted)]">
@@ -49,7 +49,7 @@ export default async function AdminPage() {
         <section className="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
           <div className="rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.82)] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-md">
             <div className="mb-6">
-              <p className="text-sm uppercase tracking-[0.3em] text-teal-800">
+                <p className="text-sm uppercase tracking-[0.3em] text-blue-900">
                 Player access
               </p>
               <h2 className="mt-2 text-2xl font-semibold text-slate-950">

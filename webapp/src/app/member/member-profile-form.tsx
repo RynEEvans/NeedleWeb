@@ -251,7 +251,7 @@ function makeInitialSheet(sheet: CharacterSheet): CharacterSheet {
 function SectionHeader({ title, subtitle }: { title: string; subtitle?: string }) {
   return (
     <div className="mb-3">
-      <div className="h-3 w-full rounded-full bg-[linear-gradient(90deg,#ff4b3a_0%,#ef2d1d_50%,#ff4b3a_100%)] shadow-[0_4px_14px_rgba(239,45,29,0.18)]" />
+      <div className="h-3 w-full rounded-full bg-[linear-gradient(90deg,#3b82f6_0%,#1e3a8a_50%,#3b82f6_100%)] shadow-[0_4px_14px_rgba(30,58,138,0.22)]" />
       <div className="mt-2 flex items-end justify-between gap-3">
         <h2 className="font-mono text-xl font-semibold uppercase tracking-[0.15em] text-slate-950">
           {title}
@@ -288,7 +288,7 @@ function SheetInput({
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-red-500"
+        className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-blue-700"
       />
     </label>
   );
@@ -317,7 +317,7 @@ function SheetTextarea({
         onChange={(event) => onChange(event.target.value)}
         rows={rows}
         placeholder={placeholder}
-        className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-red-500"
+        className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none transition focus:border-blue-700"
       />
     </label>
   );
@@ -436,6 +436,14 @@ export default function MemberProfileForm({
   const [showSkills, setShowSkills] = useState(false);
   const [showCampaignTrack, setShowCampaignTrack] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [showLoadoutSections, setShowLoadoutSections] = useState({
+    weapons: true,
+    cyberwareType: true,
+    cyberwareName: true,
+    armor: true,
+    gear: true,
+    economy: true,
+  });
   const lastSavedSheetRef = useRef<string>(JSON.stringify(makeInitialSheet(initialUser.sheet)));
   const saveInFlightRef = useRef(false);
   const queuedSaveRef = useRef<string | null>(null);
@@ -489,6 +497,13 @@ export default function MemberProfileForm({
   };
 
   const getHlTextSizeClass = (hl: string) => (hl.trim().length > 8 ? "text-xs" : "text-sm");
+
+  function toggleLoadoutSection(section: keyof typeof showLoadoutSections) {
+    setShowLoadoutSections((current) => ({
+      ...current,
+      [section]: !current[section],
+    }));
+  }
 
   function recalculateCyberwareHl(nextSheet: CharacterSheet): CharacterSheet {
     const cyberwareRows = nextSheet.cyberwareRows.map((row) => applyCatalogToCyberwareRow(row));
@@ -867,7 +882,7 @@ export default function MemberProfileForm({
         <div className="flex flex-col gap-3">
           <div className="flex items-start gap-4">
             <div className="flex-1 space-y-2">
-              <div className="h-16 w-full rounded-tl-[2rem] rounded-tr-[4rem] bg-[linear-gradient(135deg,#dc2626_0%,#991b1b_60%,#dc2626_100%)] px-5 py-4 text-white shadow-[0_4px_14px_rgba(185,28,28,0.25)]">
+              <div className="h-16 w-full rounded-tl-[2rem] rounded-tr-[4rem] bg-[linear-gradient(135deg,#1e3a8a_0%,#1e40af_60%,#1e3a8a_100%)] px-5 py-4 text-white shadow-[0_4px_14px_rgba(30,58,138,0.28)]">
                 <div className="text-4xl font-black italic tracking-[-0.08em]">NEEDLES</div>
               </div>
               <div className="pl-4 text-center text-[11px] font-bold uppercase tracking-[0.8em] text-slate-700">
@@ -877,7 +892,7 @@ export default function MemberProfileForm({
           </div>
 
           <div className="space-y-1">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-teal-800">
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-900">
               {title}
             </p>
             <p className="text-sm leading-6 text-[var(--muted)]">{subtitle}</p>
@@ -891,7 +906,7 @@ export default function MemberProfileForm({
               type="text"
               value={sheet.handle}
               onChange={(event) => setSheet((current) => ({ ...current, handle: event.target.value }))}
-              className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-red-500"
+                className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-blue-700"
               placeholder="Handle"
             />
           </label>
@@ -906,7 +921,7 @@ export default function MemberProfileForm({
                 setSheet((current) => ({ ...current, description: event.target.value }))
               }
               rows={4}
-              className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-red-500"
+              className="w-full rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-blue-700"
               placeholder="Description"
             />
           </label>
@@ -952,7 +967,7 @@ export default function MemberProfileForm({
                     type="text"
                     value={sheet.combat.location}
                     onChange={(event) => updateCombat("location", event.target.value)}
-                    className="rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-red-500"
+                    className="rounded-md border-2 border-slate-900 bg-white px-3 py-2 text-sm text-slate-950 outline-none focus:border-blue-700"
                     placeholder="Role"
                   />
                 </div>
@@ -1044,20 +1059,33 @@ export default function MemberProfileForm({
                         <button
                           type="button"
                           className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
-                          onClick={addWeaponRow}
+                          onClick={() => toggleLoadoutSection("weapons")}
                         >
-                          Add Row
+                          {showLoadoutSections.weapons ? "Hide" : "Show"}
                         </button>
-                        <button
-                          type="button"
-                          className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                          onClick={removeWeaponRow}
-                          disabled={sheet.weaponRows.length <= 1}
-                        >
-                          Remove Row
-                        </button>
+                        {showLoadoutSections.weapons ? (
+                          <>
+                            <button
+                              type="button"
+                              className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
+                              onClick={addWeaponRow}
+                            >
+                              Add Row
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              onClick={removeWeaponRow}
+                              disabled={sheet.weaponRows.length <= 1}
+                            >
+                              Remove Row
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </div>
+                    {showLoadoutSections.weapons ? (
+                    <>
                     <div className="space-y-3 md:hidden">
                       {sheet.weaponRows.map((row, index) => (
                         <div key={`weapon-mobile-${index}`} className="space-y-3 rounded-lg border border-slate-300 bg-slate-50 p-3 shadow-[0_1px_0_rgba(15,23,42,0.05)]">
@@ -1125,12 +1153,24 @@ export default function MemberProfileForm({
                         </div>
                       ))}
                     </div>
+                    </>
+                    ) : null}
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <h3 className="mb-2 font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
-                      Cyberware Type
-                    </h3>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
+                        Cyberware Type
+                      </h3>
+                      <button
+                        type="button"
+                        className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
+                        onClick={() => toggleLoadoutSection("cyberwareType")}
+                      >
+                        {showLoadoutSections.cyberwareType ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    {showLoadoutSections.cyberwareType ? (
                     <div className="space-y-2">
                       <div className="grid grid-cols-[1.6fr_0.8fr_0.8fr_0.6fr] gap-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-600">
                         <span>Type</span>
@@ -1153,7 +1193,7 @@ export default function MemberProfileForm({
                                     onChange={(event) =>
                                       updateFoundationSelection(index, "A1", event.target.checked, row.foundation)
                                     }
-                                    className="h-3.5 w-3.5 accent-teal-700"
+                                    className="h-3.5 w-3.5 accent-blue-800"
                                   />
                                   <input
                                     type="checkbox"
@@ -1161,7 +1201,7 @@ export default function MemberProfileForm({
                                     onChange={(event) =>
                                       updateFoundationSelection(index, "A2", event.target.checked, row.foundation)
                                     }
-                                    className="h-3.5 w-3.5 accent-teal-700"
+                                    className="h-3.5 w-3.5 accent-blue-800"
                                   />
                                 </div>
                               </div>
@@ -1174,7 +1214,7 @@ export default function MemberProfileForm({
                                     onChange={(event) =>
                                       updateFoundationSelection(index, "L1", event.target.checked, row.foundation)
                                     }
-                                    className="h-3.5 w-3.5 accent-teal-700"
+                                    className="h-3.5 w-3.5 accent-blue-800"
                                   />
                                   <input
                                     type="checkbox"
@@ -1182,7 +1222,7 @@ export default function MemberProfileForm({
                                     onChange={(event) =>
                                       updateFoundationSelection(index, "L2", event.target.checked, row.foundation)
                                     }
-                                    className="h-3.5 w-3.5 accent-teal-700"
+                                    className="h-3.5 w-3.5 accent-blue-800"
                                   />
                                 </div>
                               </div>
@@ -1198,7 +1238,7 @@ export default function MemberProfileForm({
                                     onChange={(event) =>
                                       updateFoundationSelection(index, "E1", event.target.checked, row.foundation)
                                     }
-                                    className="h-3.5 w-3.5 accent-teal-700"
+                                    className="h-3.5 w-3.5 accent-blue-800"
                                   />
                                   <input
                                     type="checkbox"
@@ -1206,7 +1246,7 @@ export default function MemberProfileForm({
                                     onChange={(event) =>
                                       updateFoundationSelection(index, "E2", event.target.checked, row.foundation)
                                     }
-                                    className="h-3.5 w-3.5 accent-teal-700"
+                                    className="h-3.5 w-3.5 accent-blue-800"
                                   />
                                 </div>
                               </div>
@@ -1217,7 +1257,7 @@ export default function MemberProfileForm({
                                 type="checkbox"
                                 checked={["true", "yes", "1", "checked", "x"].includes(row.foundation.trim().toLowerCase())}
                                 onChange={(event) => updateCyberwareTypeRow(index, "foundation", event.target.checked ? "Yes" : "")}
-                                className="h-4 w-4 accent-teal-700"
+                                className="h-4 w-4 accent-blue-800"
                               />
                             </label>
                           )}
@@ -1225,6 +1265,7 @@ export default function MemberProfileForm({
                         </div>
                       ))}
                     </div>
+                    ) : null}
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
@@ -1236,20 +1277,33 @@ export default function MemberProfileForm({
                         <button
                           type="button"
                           className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
-                          onClick={addCyberwareRow}
+                          onClick={() => toggleLoadoutSection("cyberwareName")}
                         >
-                          Add Row
+                          {showLoadoutSections.cyberwareName ? "Hide" : "Show"}
                         </button>
-                        <button
-                          type="button"
-                          className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                          onClick={removeCyberwareRow}
-                          disabled={sheet.cyberwareRows.length <= 1}
-                        >
-                          Remove Row
-                        </button>
+                        {showLoadoutSections.cyberwareName ? (
+                          <>
+                            <button
+                              type="button"
+                              className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
+                              onClick={addCyberwareRow}
+                            >
+                              Add Row
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              onClick={removeCyberwareRow}
+                              disabled={sheet.cyberwareRows.length <= 1}
+                            >
+                              Remove Row
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </div>
+                    {showLoadoutSections.cyberwareName ? (
+                    <>
                     <div className="space-y-3 md:hidden">
                       {sheet.cyberwareRows.map((row, index) => {
                         const matchedCyberwareEntry = findCyberwareCatalogEntry(row.name);
@@ -1303,7 +1357,7 @@ export default function MemberProfileForm({
                                   {canOpenMoreModal(row.notes) ? (
                                     <button
                                       type="button"
-                                      className="shrink-0 text-[11px] font-semibold text-teal-700 hover:text-teal-600"
+                                      className="shrink-0 text-[11px] font-semibold text-blue-800 hover:text-blue-700"
                                       onClick={() => setActiveCyberwareNoteText(row.notes)}
                                     >
                                       More
@@ -1332,7 +1386,7 @@ export default function MemberProfileForm({
                                       applyCyberwareHlChoice(index, event.target.value);
                                     }
                                   }}
-                                  className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm outline-none focus:border-red-500"
+                                  className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-white px-3 py-2 text-sm outline-none focus:border-blue-700"
                                 >
                                   <option value="">Choose HL</option>
                                   <option value="default">Default ({matchedHlRule.defaultValueLabel})</option>
@@ -1405,7 +1459,7 @@ export default function MemberProfileForm({
                               {canOpenMoreModal(row.notes) ? (
                                 <button
                                   type="button"
-                                  className="shrink-0 text-[11px] font-semibold text-teal-700 hover:text-teal-600"
+                                    className="shrink-0 text-[11px] font-semibold text-blue-800 hover:text-blue-700"
                                   onClick={() => setActiveCyberwareNoteText(row.notes)}
                                 >
                                   More
@@ -1429,7 +1483,7 @@ export default function MemberProfileForm({
                                   applyCyberwareHlChoice(index, event.target.value);
                                 }
                               }}
-                              className="h-9 min-w-0 rounded-md border border-slate-900 bg-white px-2 py-1 text-xs outline-none focus:border-red-500"
+                              className="h-9 min-w-0 rounded-md border border-slate-900 bg-white px-2 py-1 text-xs outline-none focus:border-blue-700"
                             >
                               <option value="">Choose HL</option>
                               <option value="default">Default ({matchedHlRule.defaultValueLabel})</option>
@@ -1446,6 +1500,8 @@ export default function MemberProfileForm({
                         </div>
                       )})}
                     </div>
+                    </>
+                    ) : null}
                   </div>
                 </div>
 
@@ -1459,20 +1515,33 @@ export default function MemberProfileForm({
                         <button
                           type="button"
                           className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
-                          onClick={addArmorRow}
+                          onClick={() => toggleLoadoutSection("armor")}
                         >
-                          Add Row
+                          {showLoadoutSections.armor ? "Hide" : "Show"}
                         </button>
-                        <button
-                          type="button"
-                          className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-                          onClick={removeArmorRow}
-                          disabled={sheet.armorRows.length <= 1}
-                        >
-                          Remove Row
-                        </button>
+                        {showLoadoutSections.armor ? (
+                          <>
+                            <button
+                              type="button"
+                              className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
+                              onClick={addArmorRow}
+                            >
+                              Add Row
+                            </button>
+                            <button
+                              type="button"
+                              className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+                              onClick={removeArmorRow}
+                              disabled={sheet.armorRows.length <= 1}
+                            >
+                              Remove Row
+                            </button>
+                          </>
+                        ) : null}
                       </div>
                     </div>
+                    {showLoadoutSections.armor ? (
+                    <>
                     <div className="space-y-3 md:hidden">
                       {sheet.armorRows.map((row, index) => (
                         <div key={`armor-mobile-${index}`} className="space-y-3 rounded-lg border border-slate-300 bg-slate-50 p-3 shadow-[0_1px_0_rgba(15,23,42,0.05)]">
@@ -1516,25 +1585,48 @@ export default function MemberProfileForm({
                         </div>
                       ))}
                     </div>
+                    </>
+                    ) : null}
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <h3 className="mb-2 font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
-                      Gear
-                    </h3>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
+                        Gear
+                      </h3>
+                      <button
+                        type="button"
+                        className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
+                        onClick={() => toggleLoadoutSection("gear")}
+                      >
+                        {showLoadoutSections.gear ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    {showLoadoutSections.gear ? (
                     <textarea
                       value={sheet.gear}
                       onChange={(event) => setSheet((current) => ({ ...current, gear: event.target.value }))}
                       rows={16}
-                      className="min-h-[20rem] w-full rounded-md border border-slate-900 px-3 py-2 text-sm outline-none focus:border-red-500"
+                      className="min-h-[20rem] w-full rounded-md border border-slate-900 px-3 py-2 text-sm outline-none focus:border-blue-700"
                       placeholder="Gear and carried items"
                     />
+                    ) : null}
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <h3 className="mb-2 font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
-                      Humanity / Cash / Housing
-                    </h3>
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
+                        Humanity / Cash / Housing
+                      </h3>
+                      <button
+                        type="button"
+                        className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
+                        onClick={() => toggleLoadoutSection("economy")}
+                      >
+                        {showLoadoutSections.economy ? "Hide" : "Show"}
+                      </button>
+                    </div>
+                    {showLoadoutSections.economy ? (
                     <div className="space-y-3">
                       <div className="grid grid-cols-4 gap-2">
                         <SheetInput label="Current" value={sheet.humanityTrack.current} onChange={(value) => updateHumanityTrack("current", value)} placeholder="0" />
@@ -1551,6 +1643,7 @@ export default function MemberProfileForm({
                         <SheetInput label="Cost" value={sheet.economy.cost} onChange={(value) => updateEconomy("cost", value)} placeholder="0" />
                       </div>
                     </div>
+                    ) : null}
                   </div>
                 </div>
               </div>
@@ -1619,13 +1712,13 @@ export default function MemberProfileForm({
         </div>
 
         {error ? <p className="text-sm text-red-600">{error}</p> : null}
-        {success ? <p className="text-sm text-teal-700">{success}</p> : null}
+        {success ? <p className="text-sm text-blue-800">{success}</p> : null}
 
         <div className="flex flex-wrap items-center gap-3">
           <button
             type="submit"
             disabled={saving}
-            className="rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-600 disabled:cursor-not-allowed disabled:opacity-70"
+            className="rounded-xl bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70"
           >
             {saving ? "Saving..." : submitLabel}
           </button>

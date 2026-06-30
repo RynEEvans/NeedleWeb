@@ -11,7 +11,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     <main className="min-h-screen px-6 py-8 sm:px-10 lg:px-12">
       <div className="mx-auto flex min-h-[80vh] w-full max-w-md items-center">
         <section className="w-full rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.84)] p-8 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-md">
-          <p className="text-sm uppercase tracking-[0.3em] text-teal-800">Campaign access</p>
+          <p className="text-sm uppercase tracking-[0.3em] text-blue-900">Campaign access</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Sign in</h1>
           <p className="mt-2 text-sm leading-6 text-[var(--muted)]">
             Sign in as Game Master or Player. Players will be redirected to their own character profile.
@@ -23,7 +23,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               <input
                 type="text"
                 name="username"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-teal-500"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-blue-700"
                 autoComplete="username"
                 autoCapitalize="none"
                 autoCorrect="off"
@@ -37,7 +37,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
               <input
                 type="password"
                 name="password"
-                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-teal-500"
+                className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-blue-700"
                 autoComplete="current-password"
                 autoCapitalize="none"
                 autoCorrect="off"
@@ -50,7 +50,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
 
             <button
               type="submit"
-              className="w-full rounded-xl bg-teal-700 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-teal-600"
+              className="w-full rounded-xl bg-blue-800 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700"
             >
               Sign in
             </button>

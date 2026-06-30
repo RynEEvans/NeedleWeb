@@ -20,7 +20,7 @@ export default function Home() {
   return (
     <main className="relative flex min-h-screen overflow-hidden px-6 py-8 text-slate-950 sm:px-10 lg:px-12">
       <div className="absolute inset-0 -z-10 opacity-80">
-        <div className="absolute left-[-8rem] top-[-6rem] h-72 w-72 rounded-full bg-teal-200/55 blur-3xl" />
+        <div className="absolute left-[-8rem] top-[-6rem] h-72 w-72 rounded-full bg-blue-300/50 blur-3xl" />
         <div className="absolute right-[-5rem] top-24 h-80 w-80 rounded-full bg-amber-200/50 blur-3xl" />
         <div className="absolute inset-x-0 bottom-[-8rem] h-80 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.75),transparent_68%)]" />
       </div>
@@ -28,7 +28,7 @@ export default function Home() {
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
         <header className="flex items-center justify-between rounded-full border border-white/60 bg-[var(--surface)] px-5 py-3 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-md">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-teal-800">
+            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-blue-900">
               NEEDLES TTRPG
             </p>
             <p className="text-sm text-[var(--muted)]">
@@ -37,7 +37,7 @@ export default function Home() {
           </div>
           <a
             href="/sign-in"
-            className="rounded-full border border-teal-800/20 bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-teal-600"
+            className="rounded-full border border-blue-900/20 bg-blue-800 px-4 py-2 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-blue-700"
           >
             Log in
           </a>
@@ -63,7 +63,7 @@ export default function Home() {
             <div className="space-y-5">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-sm uppercase tracking-[0.3em] text-teal-800">
+                  <p className="text-sm uppercase tracking-[0.3em] text-blue-900">
                     Universal Thread
                   </p>
                   <h2 className="mt-2 text-2xl font-semibold">

@@ -6,8 +6,8 @@
   --muted: #5d6472;
   --surface: rgba(255, 255, 255, 0.72);
   --surface-strong: rgba(255, 255, 255, 0.92);
-  --accent: #0f766e;
-  --accent-soft: #ccfbf1;
+  --accent: #1e3a8a;
+  --accent-soft: #dbeafe;
 }
 
 @theme inline {
@@ -27,7 +27,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-space-grotesk), sans-serif;
   background-image:
-    radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 28%),
+    radial-gradient(circle at top left, rgba(30, 58, 138, 0.16), transparent 28%),
     radial-gradient(circle at top right, rgba(234, 179, 8, 0.12), transparent 22%),
     linear-gradient(180deg, #fcfaf5 0%, #f5f1e8 100%);
 }

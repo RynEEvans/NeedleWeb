@@ -405,7 +405,7 @@
     "role": "Member",
     "status": "Active",
     "joinedDate": "2024-02-20",
-    "lastActive": "2026-06-30T04:55:54.882Z",
+    "lastActive": "2026-06-30T05:40:11.264Z",
     "sheet": {
       "handle": "Jordan Lee",
       "description": "A stitched-together NEEDLE who favors clean work, quick exits, and quiet breach repairs.",
@@ -518,7 +518,7 @@
           "name": "Cyberaudio Suite",
           "type": "Cyberaudio",
           "notes": "Has 3 Option Slots. Cannot install more than 1.",
-          "hl": ""
+          "hl": "0"
         },
         {
           "name": "Audio Recorder",

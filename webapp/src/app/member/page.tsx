@@ -27,7 +27,7 @@ export default async function MemberPage() {
       <div className="mx-auto flex w-full max-w-[120rem] flex-col gap-6">
         <header className="flex flex-wrap items-center justify-between gap-4 rounded-full border border-white/60 bg-[var(--surface)] px-5 py-3 shadow-[0_12px_40px_rgba(15,23,42,0.08)] backdrop-blur-md">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-teal-800">
+            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-blue-900">
               Player area
             </p>
             <p className="text-sm text-[var(--muted)]">

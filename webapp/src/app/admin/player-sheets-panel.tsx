@@ -24,7 +24,7 @@ export default function PlayerSheetsPanel({ users }: Props) {
   if (playerUsers.length === 0) {
     return (
       <aside className="rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.82)] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-md">
-        <p className="text-sm uppercase tracking-[0.3em] text-teal-800">Player sheets</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-blue-900">Player sheets</p>
         <h2 className="mt-2 text-2xl font-semibold text-slate-950">No player sheets found</h2>
         <p className="mt-3 text-sm leading-6 text-[var(--muted)]">
           Add a member or guest account to begin editing player character sheets.
@@ -36,7 +36,7 @@ export default function PlayerSheetsPanel({ users }: Props) {
   return (
     <aside className="space-y-6 rounded-[2rem] border border-white/70 bg-[rgba(255,255,255,0.82)] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.12)] backdrop-blur-md">
       <div>
-        <p className="text-sm uppercase tracking-[0.3em] text-teal-800">Player sheets</p>
+        <p className="text-sm uppercase tracking-[0.3em] text-blue-900">Player sheets</p>
         <h2 className="mt-2 text-2xl font-semibold text-slate-950">
           View and edit one player sheet at a time
         </h2>
@@ -50,7 +50,7 @@ export default function PlayerSheetsPanel({ users }: Props) {
         <select
           value={selectedUser?.username ?? ""}
           onChange={(event) => setSelectedUsername(event.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-teal-500"
+          className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-slate-900 outline-none transition focus:border-blue-700"
         >
           {playerUsers.map((user) => (
             <option key={user.username} value={user.username}>

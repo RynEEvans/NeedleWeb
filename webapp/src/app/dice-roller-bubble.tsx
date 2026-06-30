@@ -57,10 +57,10 @@ export default function DiceRollerBubble() {
               Roll d6
             </button>
           </div>
-          <div className="mt-3 rounded-lg border border-teal-800/20 bg-teal-50 px-2 py-2 text-sm">
+          <div className="mt-3 rounded-lg border border-blue-900/20 bg-blue-50 px-2 py-2 text-sm">
             {lastRoll ? (
               <p>
-                <span className="font-semibold text-teal-800">{lastRoll.die.toUpperCase()}</span>{" "}
+                <span className="font-semibold text-blue-900">{lastRoll.die.toUpperCase()}</span>{" "}
                 result: <span className="font-bold text-slate-900">{lastRoll.value}</span>
               </p>
             ) : (
@@ -91,10 +91,10 @@ export default function DiceRollerBubble() {
               Roll d6
             </button>
           </div>
-          <div className="mt-3 rounded-lg border border-teal-800/20 bg-teal-50 px-2 py-2 text-sm">
+          <div className="mt-3 rounded-lg border border-blue-900/20 bg-blue-50 px-2 py-2 text-sm">
             {lastRoll ? (
               <p>
-                <span className="font-semibold text-teal-800">{lastRoll.die.toUpperCase()}</span>{" "}
+                <span className="font-semibold text-blue-900">{lastRoll.die.toUpperCase()}</span>{" "}
                 result: <span className="font-bold text-slate-900">{lastRoll.value}</span>
               </p>
             ) : (
@@ -107,7 +107,7 @@ export default function DiceRollerBubble() {
       <button
         type="button"
         onClick={toggleOpen}
-        className="touch-manipulation rounded-full border-2 border-slate-900 bg-red-600 px-5 py-3.5 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-[0_12px_28px_rgba(185,28,28,0.35)] transition hover:-translate-y-0.5 hover:bg-red-500 active:scale-[0.98]"
+        className="touch-manipulation rounded-full border-2 border-slate-900 bg-blue-800 px-5 py-3.5 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-[0_12px_28px_rgba(30,58,138,0.35)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:scale-[0.98]"
         aria-expanded={open}
         aria-label="Toggle dice roller"
       >
