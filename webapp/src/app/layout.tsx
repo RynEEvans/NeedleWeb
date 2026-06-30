@@ -51,7 +51,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         {sessionClaims ? <GlobalAuthMenu /> : null}
         {sessionClaims && (sessionClaims.role === "Admin" || sessionClaims.role === "Member") ? (
-          <MessageToastNotifier />
+          <MessageToastNotifier username={sessionClaims.username} />
         ) : null}
         {children}
         {sessionClaims && (sessionClaims.role === "Admin" || sessionClaims.role === "Member") ? (

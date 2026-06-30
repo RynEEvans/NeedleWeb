@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import MessagesClient from "./messages/messages-client";
 
+const OPEN_MESSAGES_MODAL_EVENT = "needleweb:open-messages-modal";
+
 type RollState = {
   die: "d10" | "d6";
   values: number[];
@@ -14,6 +16,11 @@ type Props = {
   unreadMessagesCount?: number;
   role: "Admin" | "Member";
   username: string;
+};
+
+type GroupMessageLite = {
+  id: number;
+  senderUsername: string;
 };
 
 function roll(sides: number) {
@@ -30,6 +37,25 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
   const [sendTarget, setSendTarget] = useState("__group__");
   const [sendingRoll, setSendingRoll] = useState(false);
   const [sendRollStatus, setSendRollStatus] = useState<string | null>(null);
+  const [hasNewAllChatMessage, setHasNewAllChatMessage] = useState(false);
+  const [lastSeenAllChatId, setLastSeenAllChatId] = useState<number | null>(null);
+
+  async function syncAllChatSeen() {
+    try {
+      const response = await fetch("/api/messages?with=__group__", { cache: "no-store" });
+      const data = (await response.json()) as { messages?: GroupMessageLite[]; error?: string };
+      if (!response.ok) {
+        return;
+      }
+
+      const messages = data.messages ?? [];
+      const latestId = messages.length > 0 ? messages[messages.length - 1].id : 0;
+      setLastSeenAllChatId(latestId);
+      setHasNewAllChatMessage(false);
+    } catch {
+      // Keep the indicator resilient if polling fails.
+    }
+  }
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -38,9 +64,69 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
       }
     }
 
+    function onOpenMessagesModal() {
+      setMessagesOpen(true);
+      setOpen(false);
+      setRollerOpen(false);
+      void syncAllChatSeen();
+    }
+
     window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
+    window.addEventListener(OPEN_MESSAGES_MODAL_EVENT, onOpenMessagesModal);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener(OPEN_MESSAGES_MODAL_EVENT, onOpenMessagesModal);
+    };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function pollAllChat() {
+      try {
+        const response = await fetch("/api/messages?with=__group__", { cache: "no-store" });
+        const data = (await response.json()) as { messages?: GroupMessageLite[]; error?: string };
+
+        if (!response.ok || cancelled) {
+          return;
+        }
+
+        const messages = data.messages ?? [];
+        const latestId = messages.length > 0 ? messages[messages.length - 1].id : 0;
+
+        if (lastSeenAllChatId === null) {
+          setLastSeenAllChatId(latestId);
+          return;
+        }
+
+        if (latestId <= lastSeenAllChatId) {
+          return;
+        }
+
+        const hasIncomingGroupMessage = messages.some(
+          (message) =>
+            message.id > lastSeenAllChatId &&
+            message.senderUsername.toLowerCase() !== username.toLowerCase(),
+        );
+
+        if (hasIncomingGroupMessage) {
+          setHasNewAllChatMessage(true);
+        }
+      } catch {
+        // Keep the indicator silent if polling fails.
+      }
+    }
+
+    void pollAllChat();
+    const intervalId = window.setInterval(() => {
+      void pollAllChat();
+    }, 6000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
+  }, [lastSeenAllChatId, username]);
 
   useEffect(() => {
     let cancelled = false;
@@ -155,10 +241,16 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
               setMessagesOpen(true);
               setOpen(false);
               setRollerOpen(false);
+              void syncAllChatSeen();
             }}
             className="relative z-[51] flex items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100"
           >
             <span>Messages</span>
+            {hasNewAllChatMessage ? (
+              <span className="rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                All
+              </span>
+            ) : null}
             {unreadMessagesCount > 0 ? (
               <span className="rounded-full bg-blue-800 px-1.5 py-0.5 text-[10px] font-semibold text-white">
                 {unreadMessagesCount}

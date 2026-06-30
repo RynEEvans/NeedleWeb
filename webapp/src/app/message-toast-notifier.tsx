@@ -1,14 +1,19 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 type ConversationSummary = {
   username: string;
   unreadCount: number;
 };
 
+type GroupMessageLite = {
+  id: number;
+  senderUsername: string;
+};
+
 const SOUND_PREF_KEY = "needleweb.messageSoundEnabled";
+const OPEN_MESSAGES_MODAL_EVENT = "needleweb:open-messages-modal";
 
 function playNotificationTone() {
   try {
@@ -42,12 +47,12 @@ function playNotificationTone() {
   }
 }
 
-export default function MessageToastNotifier() {
-  const router = useRouter();
+export default function MessageToastNotifier({ username }: { username: string }) {
   const [toastText, setToastText] = useState<string | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
   const baselineLoadedRef = useRef(false);
   const lastUnreadTotalRef = useRef(0);
+  const lastGroupMessageIdRef = useRef(0);
 
   function isSoundEnabled() {
     try {
@@ -63,37 +68,63 @@ export default function MessageToastNotifier() {
 
     async function pollUnread() {
       try {
-        const response = await fetch("/api/messages", { cache: "no-store" });
-        const data = (await response.json()) as {
+        const [conversationResponse, groupResponse] = await Promise.all([
+          fetch("/api/messages", { cache: "no-store" }),
+          fetch("/api/messages?with=__group__", { cache: "no-store" }),
+        ]);
+
+        const conversationData = (await conversationResponse.json()) as {
           conversations?: ConversationSummary[];
           error?: string;
         };
+        const groupData = (await groupResponse.json()) as {
+          messages?: GroupMessageLite[];
+          error?: string;
+        };
 
-        if (!response.ok) {
+        if (!conversationResponse.ok || !groupResponse.ok) {
           return;
         }
 
-        const unreadTotal = (data.conversations ?? []).reduce(
+        const unreadTotal = (conversationData.conversations ?? []).reduce(
           (sum, conversation) => sum + conversation.unreadCount,
           0,
         );
+        const groupMessages = groupData.messages ?? [];
+        const latestGroupMessageId = groupMessages.length > 0 ? groupMessages[groupMessages.length - 1].id : 0;
 
         if (!baselineLoadedRef.current) {
           baselineLoadedRef.current = true;
           lastUnreadTotalRef.current = unreadTotal;
+          lastGroupMessageIdRef.current = latestGroupMessageId;
           return;
         }
 
-        if (unreadTotal > lastUnreadTotalRef.current) {
-          const delta = unreadTotal - lastUnreadTotalRef.current;
-          const label = delta === 1 ? "new message" : `${delta} new messages`;
+        const directDelta = Math.max(0, unreadTotal - lastUnreadTotalRef.current);
+        const hasNewAllChatMessage = groupMessages.some(
+          (message) =>
+            message.id > lastGroupMessageIdRef.current &&
+            message.senderUsername.toLowerCase() !== username.toLowerCase(),
+        );
+
+        if (directDelta > 0 || hasNewAllChatMessage) {
+          let label = "";
+
+          if (directDelta > 0 && hasNewAllChatMessage) {
+            const directLabel = directDelta === 1 ? "1 new message" : `${directDelta} new messages`;
+            label = `${directLabel} and a new All Chat message.`;
+          } else if (directDelta > 0) {
+            label = directDelta === 1 ? "1 new message." : `${directDelta} new messages.`;
+          } else {
+            label = "a new All Chat message.";
+          }
 
           if (!cancelled) {
             if (isSoundEnabled()) {
               playNotificationTone();
             }
 
-            setToastText(`You received ${label}.`);
+            setToastText(`You received ${label}`);
             setToastVisible(true);
 
             if (hideTimer) {
@@ -107,6 +138,7 @@ export default function MessageToastNotifier() {
         }
 
         lastUnreadTotalRef.current = unreadTotal;
+        lastGroupMessageIdRef.current = latestGroupMessageId;
       } catch {
         // Keep notifier silent if polling fails.
       }
@@ -124,7 +156,7 @@ export default function MessageToastNotifier() {
         clearTimeout(hideTimer);
       }
     };
-  }, []);
+  }, [username]);
 
   if (!toastText || !toastVisible) {
     return null;
@@ -138,7 +170,7 @@ export default function MessageToastNotifier() {
           type="button"
           onClick={() => {
             setToastVisible(false);
-            router.push("/messages");
+            window.dispatchEvent(new Event(OPEN_MESSAGES_MODAL_EVENT));
           }}
           className="rounded-md border border-blue-800 bg-blue-50 px-2 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-blue-900 hover:bg-blue-100"
         >
