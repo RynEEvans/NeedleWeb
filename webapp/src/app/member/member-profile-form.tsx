@@ -411,7 +411,7 @@ function CollapsibleSection({
 }) {
   return (
     <section className="rounded-[1.15rem] border-2 border-slate-900 bg-white p-4">
-      <div className="mb-3 flex items-start justify-between gap-3">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
         <SectionHeader title={title} subtitle={subtitle} />
         <button
           type="button"
@@ -1210,7 +1210,7 @@ export default function MemberProfileForm({
 
       <form onSubmit={onSubmit} className="space-y-5 overflow-x-hidden">
         <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
             <section className="rounded-[1.15rem] border-2 border-slate-900 bg-white p-4">
               <SectionHeader title="STATS" subtitle="Core attributes" />
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 md:grid-cols-3">
@@ -1314,14 +1314,14 @@ export default function MemberProfileForm({
 
             <section className="rounded-[1.15rem] border-2 border-slate-900 bg-white p-4">
               <PanelHeader title="WEAPONS, ARMOR, CYBERWARE & GEAR" subtitle="Reference-style panels" />
-              <div className="grid gap-4 xl:grid-cols-[1fr_1.05fr]">
-                <div className="space-y-4">
+              <div className="grid min-w-0 gap-4 xl:grid-cols-[1fr_1.05fr]">
+                <div className="min-w-0 space-y-4">
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Weapons
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
@@ -1424,7 +1424,7 @@ export default function MemberProfileForm({
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Cyberware Type
                       </h3>
@@ -1556,11 +1556,11 @@ export default function MemberProfileForm({
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Cyberware Name
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
@@ -1804,13 +1804,13 @@ export default function MemberProfileForm({
                   </div>
                 </div>
 
-                <div className="space-y-4">
+                <div className="min-w-0 space-y-4">
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Armor
                       </h3>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
                         <button
                           type="button"
                           className="rounded-md border border-slate-900 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-800 hover:bg-slate-100"
@@ -1889,7 +1889,7 @@ export default function MemberProfileForm({
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Gear
                       </h3>
@@ -1919,7 +1919,7 @@ export default function MemberProfileForm({
                   </div>
 
                   <div className="rounded-[1rem] border border-slate-900 bg-white p-3">
-                    <div className="mb-2 flex items-center justify-between gap-2">
+                    <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                       <h3 className="font-mono text-sm font-semibold uppercase tracking-[0.14em] text-slate-950">
                         Humanity / Cash / Housing
                       </h3>
@@ -1955,7 +1955,7 @@ export default function MemberProfileForm({
             </section>
           </div>
 
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
             <CollapsibleSection
               title="SKILLS"
               subtitle="Single-line view"
