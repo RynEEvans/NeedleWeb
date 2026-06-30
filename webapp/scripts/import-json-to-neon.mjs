@@ -5,6 +5,21 @@ import pg from "pg";
 
 const { Client } = pg;
 
+function normalizeDatabaseUrl(databaseUrl) {
+  try {
+    const url = new URL(databaseUrl);
+    const sslmode = url.searchParams.get("sslmode")?.toLowerCase();
+
+    if (!sslmode || sslmode === "prefer" || sslmode === "require" || sslmode === "verify-ca") {
+      url.searchParams.set("sslmode", "verify-full");
+    }
+
+    return url.toString();
+  } catch {
+    return databaseUrl;
+  }
+}
+
 async function readJson(relativePath) {
   const fullPath = resolve(process.cwd(), relativePath);
   const raw = await readFile(fullPath, "utf8");
@@ -20,7 +35,7 @@ async function main() {
   const users = await readJson("data/users.json");
   const signupRequests = await readJson("data/signup-requests.json").catch(() => []);
 
-  const client = new Client({ connectionString: databaseUrl });
+  const client = new Client({ connectionString: normalizeDatabaseUrl(databaseUrl) });
   await client.connect();
 
   try {

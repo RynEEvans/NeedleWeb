@@ -5,6 +5,7 @@ import "./globals.css";
 import DiceRollerBubble from "./dice-roller-bubble";
 import GlobalAuthMenu from "./global-auth-menu";
 import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
+import { getConversationSummariesForAdmin, getUnreadCountForUser } from "@/lib/messages";
 
 const spaceGrotesk = Space_Grotesk({
   variable: "--font-space-grotesk",
@@ -30,6 +31,16 @@ export default async function RootLayout({
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   const sessionClaims = readSessionClaims(token);
+  let unreadMessagesCount = 0;
+
+  if (sessionClaims) {
+    if (sessionClaims.role === "Admin") {
+      const conversations = await getConversationSummariesForAdmin(sessionClaims.username);
+      unreadMessagesCount = conversations.reduce((total, conversation) => total + conversation.unreadCount, 0);
+    } else if (sessionClaims.role === "Member") {
+      unreadMessagesCount = await getUnreadCountForUser(sessionClaims.username);
+    }
+  }
 
   return (
     <html
@@ -39,7 +50,13 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         {sessionClaims ? <GlobalAuthMenu /> : null}
         {children}
-        <DiceRollerBubble />
+        {sessionClaims && (sessionClaims.role === "Admin" || sessionClaims.role === "Member") ? (
+          <DiceRollerBubble
+            unreadMessagesCount={unreadMessagesCount}
+            role={sessionClaims.role}
+            username={sessionClaims.username}
+          />
+        ) : null}
       </body>
     </html>
   );

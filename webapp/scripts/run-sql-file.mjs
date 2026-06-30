@@ -5,6 +5,21 @@ import pg from "pg";
 
 const { Client } = pg;
 
+function normalizeDatabaseUrl(databaseUrl) {
+  try {
+    const url = new URL(databaseUrl);
+    const sslmode = url.searchParams.get("sslmode")?.toLowerCase();
+
+    if (!sslmode || sslmode === "prefer" || sslmode === "require" || sslmode === "verify-ca") {
+      url.searchParams.set("sslmode", "verify-full");
+    }
+
+    return url.toString();
+  } catch {
+    return databaseUrl;
+  }
+}
+
 async function main() {
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
@@ -15,7 +30,7 @@ async function main() {
   const sqlPath = resolve(process.cwd(), sqlFile);
   const sql = await readFile(sqlPath, "utf8");
 
-  const client = new Client({ connectionString: databaseUrl });
+  const client = new Client({ connectionString: normalizeDatabaseUrl(databaseUrl) });
   await client.connect();
 
   try {

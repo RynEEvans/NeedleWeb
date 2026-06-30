@@ -1,22 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import MessagesClient from "./messages/messages-client";
 
 type RollState = {
   die: "d10" | "d6";
   value: number;
 };
 
+type Props = {
+  unreadMessagesCount?: number;
+  role: "Admin" | "Member";
+  username: string;
+};
+
 function roll(sides: number) {
   return Math.floor(Math.random() * sides) + 1;
 }
 
-export default function DiceRollerBubble() {
+export default function DiceRollerBubble({ unreadMessagesCount = 0, role, username }: Props) {
   const [open, setOpen] = useState(false);
+  const [rollerOpen, setRollerOpen] = useState(false);
+  const [messagesOpen, setMessagesOpen] = useState(false);
   const [lastRoll, setLastRoll] = useState<RollState | null>(null);
+
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setMessagesOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   function toggleOpen() {
     setOpen((current) => !current);
+    if (open) {
+      setRollerOpen(false);
+    }
   }
 
   function handleRoll(sides: 10 | 6) {
@@ -32,11 +55,70 @@ export default function DiceRollerBubble() {
         bottom: "max(1rem, env(safe-area-inset-bottom))",
       }}
     >
-      {open ? (
-        <div className="fixed inset-0 z-40 bg-black/20 sm:hidden" onClick={toggleOpen} aria-hidden="true" />
+      <div
+        className={`fixed inset-0 z-40 bg-black/20 transition-opacity duration-200 sm:hidden ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
+        onClick={toggleOpen}
+        aria-hidden="true"
+      />
+
+      <div
+        className={`absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2 transition-all duration-200 ${open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}
+      >
+          <button
+            type="button"
+            onClick={() => setRollerOpen((current) => !current)}
+            className="touch-manipulation rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100 active:scale-[0.98]"
+          >
+            Dice
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setMessagesOpen(true);
+              setOpen(false);
+              setRollerOpen(false);
+            }}
+            className="flex items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100"
+          >
+            <span>Messages</span>
+            {unreadMessagesCount > 0 ? (
+              <span className="rounded-full bg-blue-800 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                {unreadMessagesCount}
+              </span>
+            ) : null}
+          </button>
+      </div>
+
+      {messagesOpen ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/55 p-3 sm:p-6"
+          onClick={() => setMessagesOpen(false)}
+          aria-modal="true"
+          role="dialog"
+          aria-label="Messages"
+        >
+          <div
+            className="flex h-[min(92vh,48rem)] w-full max-w-4xl flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_22px_55px_rgba(2,6,23,0.35)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3 sm:px-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-slate-700">Messages</p>
+              <button
+                type="button"
+                onClick={() => setMessagesOpen(false)}
+                className="rounded-md border border-slate-300 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.08em] text-slate-700 transition hover:bg-slate-100"
+              >
+                Close
+              </button>
+            </div>
+            <div className="min-h-0 flex-1 overflow-y-auto p-3 sm:p-4">
+              <MessagesClient role={role} username={username} initialWithUsername="__group__" />
+            </div>
+          </div>
+        </div>
       ) : null}
 
-      {open ? (
+      {rollerOpen ? (
         <div className="fixed inset-x-3 z-50 rounded-2xl border border-slate-900/15 bg-white p-4 shadow-[0_20px_45px_rgba(2,6,23,0.28)] sm:hidden" style={{ bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)" }}>
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
@@ -70,7 +152,7 @@ export default function DiceRollerBubble() {
         </div>
       ) : null}
 
-      {open ? (
+      {rollerOpen ? (
         <div className="absolute bottom-full right-0 mb-3 hidden w-60 max-w-[80vw] rounded-2xl border border-slate-900/15 bg-white/95 p-3 shadow-[0_16px_40px_rgba(2,6,23,0.25)] backdrop-blur sm:block">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
@@ -107,11 +189,11 @@ export default function DiceRollerBubble() {
       <button
         type="button"
         onClick={toggleOpen}
-        className="touch-manipulation rounded-full border-2 border-slate-900 bg-blue-800 px-5 py-3.5 text-sm font-bold uppercase tracking-[0.1em] text-white shadow-[0_12px_28px_rgba(30,58,138,0.35)] transition hover:-translate-y-0.5 hover:bg-blue-700 active:scale-[0.98]"
+        className="touch-manipulation flex h-12 w-12 items-center justify-center rounded-full border-2 border-slate-900 bg-white text-xl font-bold text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:bg-slate-100 active:scale-[0.98]"
         aria-expanded={open}
-        aria-label="Toggle dice roller"
+        aria-label="Toggle quick actions"
       >
-        Dice
+        <span className={`transition-transform duration-200 ${open ? "rotate-45" : "rotate-0"}`}>+</span>
       </button>
     </div>
   );

@@ -53,6 +53,16 @@ export default function GlobalAuthMenu() {
             >
               Cyberware
             </Link>
+
+            <div className="my-1 h-px bg-slate-200" />
+            <form action="/api/auth/logout" method="post" onSubmit={() => setOpen(false)}>
+              <button
+                type="submit"
+                className="block w-full rounded-xl px-3 py-2 text-left text-sm font-semibold text-red-700 hover:bg-red-50"
+              >
+                Sign out
+              </button>
+            </form>
           </nav>
         </>
       ) : null}

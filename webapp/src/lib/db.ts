@@ -6,6 +6,21 @@ declare global {
   var __needleDbPool: Pool | undefined;
 }
 
+function normalizeDatabaseUrl(databaseUrl: string): string {
+  try {
+    const url = new URL(databaseUrl);
+    const sslmode = url.searchParams.get("sslmode")?.toLowerCase();
+
+    if (!sslmode || sslmode === "prefer" || sslmode === "require" || sslmode === "verify-ca") {
+      url.searchParams.set("sslmode", "verify-full");
+    }
+
+    return url.toString();
+  } catch {
+    return databaseUrl;
+  }
+}
+
 function getPool(): Pool {
   if (global.__needleDbPool) {
     return global.__needleDbPool;
@@ -17,7 +32,7 @@ function getPool(): Pool {
   }
 
   const pool = new Pool({
-    connectionString,
+    connectionString: normalizeDatabaseUrl(connectionString),
     max: 10,
   });
 
