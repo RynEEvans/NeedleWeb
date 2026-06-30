@@ -1,0 +1,1528 @@
+[
+  {
+    "id": 1,
+    "username": "ryanevans",
+    "password": "read180!",
+    "email": "ryanevans@example.com",
+    "role": "Admin",
+    "status": "Online",
+    "joinedDate": "2024-01-15",
+    "lastActive": "2026-06-29T21:05:00Z",
+    "sheet": {
+      "handle": "",
+      "description": "",
+      "portraitUrl": "",
+      "stats": {
+        "INT": "",
+        "REF": "",
+        "TECH": "",
+        "COOL": "",
+        "ATTR": "",
+        "EMP": "",
+        "BODY": "",
+        "RUN": "",
+        "LEAP": "",
+        "LIFT": ""
+      },
+      "combat": {
+        "location": "",
+        "armorSp": "",
+        "save": "",
+        "btm": "",
+        "body": {
+          "Head": "",
+          "Torso": "",
+          "R.Arm": "",
+          "L.Arm": "",
+          "R.Leg": "",
+          "L.Leg": ""
+        }
+      },
+      "weaponRows": [
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        }
+      ],
+      "armorRows": [
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        }
+      ],
+      "cyberwareTypeRows": [
+        {
+          "name": "Fashionware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Neuralware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberoptics",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberaudio",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Internal Cyberware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "External Cyberware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberlimbs",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Borgware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        }
+      ],
+      "gear": "",
+      "cyberwareRows": [
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        }
+      ],
+      "humanityTrack": {
+        "current": "",
+        "decreased": "",
+        "max": "",
+        "totalHl": ""
+      },
+      "economy": {
+        "cash": "",
+        "debts": "",
+        "housing": "",
+        "rent": "",
+        "lifestyle": "",
+        "cost": ""
+      },
+      "weaponsArmorRows": [
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        }
+      ],
+      "cybernetics": [
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        }
+      ],
+      "skills": {},
+      "rep": "",
+      "currentIp": "",
+      "humanity": ""
+    }
+  },
+  {
+    "id": 2,
+    "username": "jordanlee",
+    "password": "jopass",
+    "email": "jordan@example.com",
+    "role": "Member",
+    "status": "Active",
+    "joinedDate": "2024-02-20",
+    "lastActive": "2026-06-30T04:55:54.882Z",
+    "sheet": {
+      "handle": "Jordan Lee",
+      "description": "A stitched-together NEEDLE who favors clean work, quick exits, and quiet breach repairs.",
+      "portraitUrl": "",
+      "stats": {
+        "INT": "6",
+        "REF": "8",
+        "TECH": "7",
+        "COOL": "6",
+        "ATTR": "5",
+        "EMP": "4",
+        "BODY": "6",
+        "RUN": "7",
+        "LEAP": "6",
+        "LIFT": "5"
+      },
+      "combat": {
+        "location": "North Gate",
+        "armorSp": "18",
+        "save": "9",
+        "btm": "-2",
+        "body": {
+          "Head": "5",
+          "Torso": "18",
+          "R.Arm": "10",
+          "L.Arm": "10",
+          "R.Leg": "8",
+          "L.Leg": "8"
+        }
+      },
+      "weaponRows": [
+        {
+          "name": "Monoblade",
+          "dmg": "2D6",
+          "rof": "1",
+          "hands": "1",
+          "con": "-",
+          "mag": "-",
+          "ammo": "-",
+          "notes": "Close work"
+        }
+      ],
+      "armorRows": [
+        {
+          "name": "Armorjack",
+          "sp": "11",
+          "penalty": "0",
+          "notes": "Reliable"
+        },
+        {
+          "name": "Light Armor Vest",
+          "sp": "11",
+          "penalty": "0",
+          "notes": "Workwear"
+        }
+      ],
+      "cyberwareTypeRows": [
+        {
+          "name": "Fashionware",
+          "optionSlots": "5",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Neuralware",
+          "optionSlots": "0",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberoptics",
+          "optionSlots": "0",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberaudio",
+          "optionSlots": "2",
+          "foundation": "Yes",
+          "hl": "2"
+        },
+        {
+          "name": "Internal Cyberware",
+          "optionSlots": "7",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "External Cyberware",
+          "optionSlots": "7",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberlimbs",
+          "optionSlots": "0",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Borgware",
+          "optionSlots": "0",
+          "foundation": "",
+          "hl": "0"
+        }
+      ],
+      "gear": "Patch kit, rope, comms, tool roll, lock picks, med supplies, spare mags, ration bars.",
+      "cyberwareRows": [
+        {
+          "name": "Cyberaudio Suite",
+          "type": "Cyberaudio",
+          "notes": "Has 3 Option Slots. Cannot install more than 1.",
+          "hl": ""
+        },
+        {
+          "name": "Audio Recorder",
+          "type": "Cyberaudio",
+          "notes": "Records audio to Memory Chip or linked Agent. Requires a Cyberaudio Suite.",
+          "hl": "2"
+        },
+        {
+          "name": "Techhair",
+          "type": "Fashionware",
+          "notes": "Color-light-emitting artificial hair. +2 to Personal Grooming if user also has Chemskin.",
+          "hl": "0"
+        },
+        {
+          "name": "Chemskin",
+          "type": "Fashionware",
+          "notes": "Dyes and pigments infused into the skin to permanently change its hue. +2 to Personal Grooming if user also has Techhair.",
+          "hl": "0"
+        }
+      ],
+      "humanityTrack": {
+        "current": "47",
+        "decreased": "3",
+        "max": "50",
+        "totalHl": "23"
+      },
+      "economy": {
+        "cash": "1200",
+        "debts": "300",
+        "housing": "Apartment",
+        "rent": "650",
+        "lifestyle": "Street",
+        "cost": "0"
+      },
+      "weaponsArmorRows": [
+        {
+          "item": "Mono Knife",
+          "type": "Weapon",
+          "sp": "",
+          "cost": "150"
+        },
+        {
+          "item": "Heavy Pistol",
+          "type": "Weapon",
+          "sp": "",
+          "cost": "500"
+        },
+        {
+          "item": "Armorjack",
+          "type": "Armor",
+          "sp": "11",
+          "cost": "1000"
+        },
+        {
+          "item": "Light Armor Vest",
+          "type": "Armor",
+          "sp": "11",
+          "cost": "100"
+        },
+        {
+          "item": "Shoulder Arms Rifle",
+          "type": "Weapon",
+          "sp": "",
+          "cost": "1000"
+        },
+        {
+          "item": "Medium Armorjack",
+          "type": "Armor",
+          "sp": "12",
+          "cost": "1000"
+        },
+        {
+          "item": "Grenade",
+          "type": "Weapon",
+          "sp": "",
+          "cost": "100"
+        },
+        {
+          "item": "Bulletproof Shield",
+          "type": "Armor",
+          "sp": "10",
+          "cost": "500"
+        }
+      ],
+      "cybernetics": [
+        {
+          "name": "Neural Jack",
+          "cost": "500",
+          "hl": "2"
+        },
+        {
+          "name": "Optic Zoom",
+          "cost": "250",
+          "hl": "1"
+        },
+        {
+          "name": "Grip Assist",
+          "cost": "300",
+          "hl": "1"
+        },
+        {
+          "name": "Reflex Booster",
+          "cost": "900",
+          "hl": "3"
+        },
+        {
+          "name": "Tissue Seal",
+          "cost": "400",
+          "hl": "1"
+        },
+        {
+          "name": "Signal Scrambler",
+          "cost": "600",
+          "hl": "2"
+        },
+        {
+          "name": "Subdermal Mesh",
+          "cost": "750",
+          "hl": "2"
+        },
+        {
+          "name": "Nano Patch",
+          "cost": "200",
+          "hl": "1"
+        },
+        {
+          "name": "Carry Clamp",
+          "cost": "150",
+          "hl": "0"
+        },
+        {
+          "name": "Thread Sense",
+          "cost": "850",
+          "hl": "2"
+        }
+      ],
+      "skills": {
+        "Concentration": "0",
+        "Conceal/Reveal Object": "0",
+        "Lip Reading": "0",
+        "Perception": "4",
+        "Tracking": "4",
+        "Athletics": "4",
+        "Contortionist": "0",
+        "Dance": "0",
+        "Endurance": "4",
+        "Resist Torture/Drugs": "3",
+        "Stealth": "4",
+        "Drive Land Vehicle": "2",
+        "Pilot Air Vehicle": "0",
+        "Pilot Sea Vehicle": "0",
+        "Riding": "0",
+        "Accounting": "1",
+        "Anthropology": "",
+        "Animal Handling": "0",
+        "Bureaucracy": "0",
+        "Business": "0",
+        "Composition": "0",
+        "Criminology": "0",
+        "Cryptography": "0",
+        "Deduction": "0",
+        "Education": "3",
+        "Gamble": "1",
+        "Language": "3",
+        "Library Search": "2",
+        "Local Expert": "3",
+        "Science": "1",
+        "Tactics": "0",
+        "Wilderness Survival": "2",
+        "Brawling": "3",
+        "Evasion": "4",
+        "Martial Arts": "1",
+        "Melee Weapon": "3",
+        "Acting": "0",
+        "Instrument": "0",
+        "Archery": "0",
+        "Autofire": "0",
+        "Handgun": "3",
+        "Heavy Weapons": "0",
+        "Shoulder Arms": "2",
+        "Bribery": "0",
+        "Conversation": "2",
+        "Human Perception": "2",
+        "Interrogation": "0",
+        "Persuasion": "2",
+        "Personal Grooming": "2",
+        "Streetwise": "4",
+        "Trading": "0",
+        "Wardrobe & Style": "3",
+        "Air Vehicle Tech": "0",
+        "Basic Tech": "5",
+        "Cybertech": "4",
+        "Demolitions": "1",
+        "Electronics/Security Tech": "3",
+        "First Aid": "3",
+        "Forgery": "1",
+        "Land Vehicle Tech": "0",
+        "Paint/Draw/Sculpt": "1",
+        "Paramedic": "0",
+        "Photography/Film": "1",
+        "Pick Lock": "3",
+        "Pick Pocket": "2",
+        "Sea Vehicle Tech": "0",
+        "Weaponstech": "2"
+      },
+      "rep": "4",
+      "currentIp": "12",
+      "humanity": "47"
+    }
+  },
+  {
+    "id": 3,
+    "username": "sampatel",
+    "password": "SecurePass789!",
+    "email": "sam@example.com",
+    "role": "Member",
+    "status": "Active",
+    "joinedDate": "2024-03-10",
+    "lastActive": "2026-06-29T15:20:00Z",
+    "sheet": {
+      "handle": "",
+      "description": "",
+      "portraitUrl": "",
+      "stats": {
+        "INT": "",
+        "REF": "",
+        "TECH": "",
+        "COOL": "",
+        "ATTR": "",
+        "EMP": "",
+        "BODY": "",
+        "RUN": "",
+        "LEAP": "",
+        "LIFT": ""
+      },
+      "combat": {
+        "location": "",
+        "armorSp": "",
+        "save": "",
+        "btm": "",
+        "body": {
+          "Head": "",
+          "Torso": "",
+          "R.Arm": "",
+          "L.Arm": "",
+          "R.Leg": "",
+          "L.Leg": ""
+        }
+      },
+      "weaponRows": [
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        }
+      ],
+      "armorRows": [
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        }
+      ],
+      "cyberwareTypeRows": [
+        {
+          "name": "Fashionware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Neuralware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberoptics",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberaudio",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Internal Cyberware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "External Cyberware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberlimbs",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Borgware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        }
+      ],
+      "gear": "",
+      "cyberwareRows": [
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        }
+      ],
+      "humanityTrack": {
+        "current": "",
+        "decreased": "",
+        "max": "",
+        "totalHl": ""
+      },
+      "economy": {
+        "cash": "",
+        "debts": "",
+        "housing": "",
+        "rent": "",
+        "lifestyle": "",
+        "cost": ""
+      },
+      "weaponsArmorRows": [
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        }
+      ],
+      "cybernetics": [
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        }
+      ],
+      "skills": {},
+      "rep": "",
+      "currentIp": "",
+      "humanity": ""
+    }
+  },
+  {
+    "id": 4,
+    "username": "rileybrooks",
+    "password": "TempPass2026!",
+    "email": "riley@example.com",
+    "role": "Guest",
+    "status": "Invited",
+    "joinedDate": "2026-06-25",
+    "lastActive": null,
+    "sheet": {
+      "handle": "",
+      "description": "",
+      "portraitUrl": "",
+      "stats": {
+        "INT": "",
+        "REF": "",
+        "TECH": "",
+        "COOL": "",
+        "ATTR": "",
+        "EMP": "",
+        "BODY": "",
+        "RUN": "",
+        "LEAP": "",
+        "LIFT": ""
+      },
+      "combat": {
+        "location": "",
+        "armorSp": "",
+        "save": "",
+        "btm": "",
+        "body": {
+          "Head": "",
+          "Torso": "",
+          "R.Arm": "",
+          "L.Arm": "",
+          "R.Leg": "",
+          "L.Leg": ""
+        }
+      },
+      "weaponRows": [
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "dmg": "",
+          "rof": "",
+          "hands": "",
+          "con": "",
+          "mag": "",
+          "ammo": "",
+          "notes": ""
+        }
+      ],
+      "armorRows": [
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        },
+        {
+          "name": "",
+          "sp": "",
+          "penalty": "",
+          "notes": ""
+        }
+      ],
+      "cyberwareTypeRows": [
+        {
+          "name": "Fashionware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Neuralware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberoptics",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberaudio",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Internal Cyberware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "External Cyberware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Cyberlimbs",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        },
+        {
+          "name": "Borgware",
+          "optionSlots": "",
+          "foundation": "",
+          "hl": "0"
+        }
+      ],
+      "gear": "",
+      "cyberwareRows": [
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        },
+        {
+          "name": "",
+          "type": "",
+          "notes": "",
+          "hl": "0"
+        }
+      ],
+      "humanityTrack": {
+        "current": "",
+        "decreased": "",
+        "max": "",
+        "totalHl": ""
+      },
+      "economy": {
+        "cash": "",
+        "debts": "",
+        "housing": "",
+        "rent": "",
+        "lifestyle": "",
+        "cost": ""
+      },
+      "weaponsArmorRows": [
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        },
+        {
+          "item": "",
+          "type": "",
+          "sp": "",
+          "cost": ""
+        }
+      ],
+      "cybernetics": [
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        },
+        {
+          "name": "",
+          "cost": "",
+          "hl": ""
+        }
+      ],
+      "skills": {},
+      "rep": "",
+      "currentIp": "",
+      "humanity": ""
+    }
+  }
+]

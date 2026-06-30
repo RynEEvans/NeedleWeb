@@ -1,0 +1,46 @@
+[
+  {
+    "type": "Fashionware",
+    "maxOptionSlots": 7,
+    "source": "Category limit"
+  },
+  {
+    "type": "Neuralware",
+    "maxOptionSlots": 5,
+    "source": "Neural Link foundational cyberware"
+  },
+  {
+    "type": "Cyberoptics",
+    "maxOptionSlots": 3,
+    "source": "Cybereye foundational cyberware"
+  },
+  {
+    "type": "Cyberaudio",
+    "maxOptionSlots": 3,
+    "source": "Cyberaudio Suite foundational cyberware"
+  },
+  {
+    "type": "Internal Cyberware",
+    "maxOptionSlots": 7,
+    "source": "Category limit"
+  },
+  {
+    "type": "External Cyberware",
+    "maxOptionSlots": 7,
+    "source": "Category limit"
+  },
+  {
+    "type": "Cyberlimbs",
+    "maxOptionSlots": null,
+    "foundationMaximums": {
+      "Cyberarm": 4,
+      "Cyberleg": 3
+    },
+    "source": "Foundation-specific limits"
+  },
+  {
+    "type": "Borgware",
+    "maxOptionSlots": null,
+    "source": "No shared category slot cap listed"
+  }
+]

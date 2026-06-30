@@ -1,0 +1,18 @@
+import { cookies } from "next/headers";
+import { NextResponse } from "next/server";
+import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
+import { getPublicUsers } from "@/lib/users";
+
+export async function GET() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get(SESSION_COOKIE_NAME)?.value;
+  const claims = readSessionClaims(token);
+
+  if (!claims || claims.role !== "Admin") {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return NextResponse.json({ users: getPublicUsers() });
+}
+
+
