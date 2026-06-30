@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
+import { buildAbsoluteUrlFromRequest } from "@/lib/request-url";
 import { deleteUserByUsername } from "@/lib/users";
 
 function isAdmin(token?: string) {
@@ -38,7 +39,7 @@ export async function POST(
   if (confirmationUsername !== username) {
     const message = "Type the exact username to confirm deletion.";
     if (expectsRedirect) {
-      const redirectUrl = new URL("/admin", request.url);
+      const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
       redirectUrl.searchParams.set("error", message);
       return NextResponse.redirect(redirectUrl, 303);
     }
@@ -50,7 +51,7 @@ export async function POST(
     const deletedUser = await deleteUserByUsername(username);
 
     if (expectsRedirect) {
-      const redirectUrl = new URL("/admin", request.url);
+      const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
       redirectUrl.searchParams.set("success", `Deleted member ${deletedUser.username}.`);
       return NextResponse.redirect(redirectUrl, 303);
     }
@@ -60,7 +61,7 @@ export async function POST(
     const messageText = error instanceof Error ? error.message : "Unable to delete user.";
 
     if (expectsRedirect) {
-      const redirectUrl = new URL("/admin", request.url);
+      const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
       redirectUrl.searchParams.set("error", messageText);
       return NextResponse.redirect(redirectUrl, 303);
     }

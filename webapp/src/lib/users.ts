@@ -57,6 +57,19 @@ type SignupRequestRow = {
   rejected_at: string | null;
 };
 
+function toIsoStringOrNull(value: unknown): string | null {
+  if (!value) {
+    return null;
+  }
+
+  const date = value instanceof Date ? value : new Date(String(value));
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
+function toIsoStringOrNow(value: unknown): string {
+  return toIsoStringOrNull(value) ?? new Date().toISOString();
+}
+
 function normalizeUsername(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -70,7 +83,7 @@ function mapUserRow(row: UserRow): UserRecord {
     role: row.role,
     status: row.status,
     joinedDate: row.joined_date,
-    lastActive: row.last_active,
+    lastActive: toIsoStringOrNull(row.last_active),
     sheet: row.sheet,
   };
 }
@@ -82,12 +95,12 @@ function mapSignupRequestRow(row: SignupRequestRow): SignupRequestRecord {
     email: row.email,
     password: row.password,
     message: row.message,
-    requestedAt: row.requested_at,
+    requestedAt: toIsoStringOrNow(row.requested_at),
     status: row.status,
     approvedBy: row.approved_by ?? undefined,
-    approvedAt: row.approved_at ?? undefined,
+    approvedAt: toIsoStringOrNull(row.approved_at) ?? undefined,
     rejectedBy: row.rejected_by ?? undefined,
-    rejectedAt: row.rejected_at ?? undefined,
+    rejectedAt: toIsoStringOrNull(row.rejected_at) ?? undefined,
   };
 }
 

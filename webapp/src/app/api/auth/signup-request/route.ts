@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { buildAbsoluteUrlFromRequest } from "@/lib/request-url";
 import { createSignupRequest } from "@/lib/users";
 
 type SignupRequestBody = {
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ ok: true, signupRequest }, { status: 201 });
     }
 
-    const successUrl = new URL("/sign-up", request.url);
+    const successUrl = buildAbsoluteUrlFromRequest(request, "/sign-up");
     successUrl.searchParams.set("success", "Request submitted. An admin will review it soon.");
     return NextResponse.redirect(successUrl, 303);
   } catch (error) {
@@ -60,7 +61,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: messageText }, { status: 400 });
     }
 
-    const errorUrl = new URL("/sign-up", request.url);
+    const errorUrl = buildAbsoluteUrlFromRequest(request, "/sign-up");
     errorUrl.searchParams.set("error", messageText);
     return NextResponse.redirect(errorUrl, 303);
   }

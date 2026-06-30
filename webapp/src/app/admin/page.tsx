@@ -27,7 +27,14 @@ export default async function AdminPage({ searchParams }: AdminPageProps) {
     .sort((a, b) => {
       const aTime = a.status === "Approved" ? a.approvedAt ?? a.requestedAt : a.rejectedAt ?? a.requestedAt;
       const bTime = b.status === "Approved" ? b.approvedAt ?? b.requestedAt : b.rejectedAt ?? b.requestedAt;
-      return bTime.localeCompare(aTime);
+
+      const aTimestamp = Date.parse(String(aTime));
+      const bTimestamp = Date.parse(String(bTime));
+
+      const safeATimestamp = Number.isFinite(aTimestamp) ? aTimestamp : 0;
+      const safeBTimestamp = Number.isFinite(bTimestamp) ? bTimestamp : 0;
+
+      return safeBTimestamp - safeATimestamp;
     });
 
   const resolvedSearchParams = searchParams ? await searchParams : undefined;

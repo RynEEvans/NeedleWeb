@@ -4,23 +4,13 @@ import {
   getSessionTtlSeconds,
   SESSION_COOKIE_NAME,
 } from "@/lib/admin-auth";
+import { buildAbsoluteUrlFromRequest } from "@/lib/request-url";
 import { findUserByCredentials } from "@/lib/users";
 
 type LoginBody = {
   username?: string;
   password?: string;
 };
-
-function buildRedirectUrl(request: NextRequest, path: string): URL {
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  const protocol = request.headers.get("x-forwarded-proto") ?? "http";
-
-  if (host) {
-    return new URL(path, `${protocol}://${host}`);
-  }
-
-  return new URL(path, request.nextUrl.origin);
-}
 
 export async function POST(request: NextRequest) {
   const contentType = request.headers.get("content-type") ?? "";
@@ -48,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: message }, { status });
     }
 
-    const errorUrl = buildRedirectUrl(request, "/sign-in");
+    const errorUrl = buildAbsoluteUrlFromRequest(request, "/sign-in");
     errorUrl.searchParams.set("error", message);
     return NextResponse.redirect(errorUrl, 303);
   };
@@ -67,7 +57,7 @@ export async function POST(request: NextRequest) {
   }
 
   const response = expectsRedirect
-    ? NextResponse.redirect(buildRedirectUrl(request, user.role === "Admin" ? "/admin" : "/member"), 303)
+    ? NextResponse.redirect(buildAbsoluteUrlFromRequest(request, user.role === "Admin" ? "/admin" : "/member"), 303)
     : NextResponse.json({ ok: true, role: user.role });
   response.cookies.set({
     name: SESSION_COOKIE_NAME,

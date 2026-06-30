@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
+import { buildAbsoluteUrlFromRequest } from "@/lib/request-url";
 import {
   approveSignupRequest,
   getPublicSignupRequests,
@@ -80,13 +81,13 @@ export async function POST(request: Request) {
   const action = typeof rawAction === "string" ? rawAction : "";
 
   if (!Number.isFinite(requestId)) {
-    const redirectUrl = new URL("/admin", request.url);
+    const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
     redirectUrl.searchParams.set("error", "A valid requestId is required.");
     return NextResponse.redirect(redirectUrl, 303);
   }
 
   if (action !== "approve" && action !== "reject") {
-    const redirectUrl = new URL("/admin", request.url);
+    const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
     redirectUrl.searchParams.set("error", "Action must be approve or reject.");
     return NextResponse.redirect(redirectUrl, 303);
   }
@@ -94,18 +95,18 @@ export async function POST(request: Request) {
   try {
     if (action === "approve") {
       const user = await approveSignupRequest(requestId, claims.username);
-      const redirectUrl = new URL("/admin", request.url);
+      const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
       redirectUrl.searchParams.set("success", `Approved ${user.username}.`);
       return NextResponse.redirect(redirectUrl, 303);
     }
 
     const rejected = await rejectSignupRequest(requestId, claims.username);
-    const redirectUrl = new URL("/admin", request.url);
+    const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
     redirectUrl.searchParams.set("success", `Rejected request from ${rejected.username}.`);
     return NextResponse.redirect(redirectUrl, 303);
   } catch (error) {
     const messageText = error instanceof Error ? error.message : "Unable to process approval.";
-    const redirectUrl = new URL("/admin", request.url);
+    const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
     redirectUrl.searchParams.set("error", messageText);
     return NextResponse.redirect(redirectUrl, 303);
   }

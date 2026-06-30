@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
+import { buildAbsoluteUrlFromRequest } from "@/lib/request-url";
 import { createMemberUser } from "@/lib/users";
 
 type CreateMemberBody = {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     });
 
     if (expectsRedirect) {
-      const redirectUrl = new URL("/admin", request.url);
+      const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
       redirectUrl.searchParams.set("success", `Created member ${user.username}.`);
       return NextResponse.redirect(redirectUrl, 303);
     }
@@ -57,7 +58,7 @@ export async function POST(request: Request) {
     const messageText = error instanceof Error ? error.message : "Unable to create member.";
 
     if (expectsRedirect) {
-      const redirectUrl = new URL("/admin", request.url);
+      const redirectUrl = buildAbsoluteUrlFromRequest(request, "/admin");
       redirectUrl.searchParams.set("error", messageText);
       return NextResponse.redirect(redirectUrl, 303);
     }

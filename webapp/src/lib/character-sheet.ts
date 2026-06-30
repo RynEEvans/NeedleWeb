@@ -17,6 +17,16 @@ export const DEFAULT_WEAPON_ROW_COUNT = 6;
 export const DEFAULT_ARMOR_ROW_COUNT = 6;
 export const DEFAULT_CYBERWARE_TYPE_ROW_COUNT = 8;
 export const DEFAULT_CYBERWARE_ROW_COUNT = 14;
+export const DEFAULT_CYBERWARE_TYPES = [
+  "Fashionware",
+  "Neuralware",
+  "Cyberoptics",
+  "Cyberaudio",
+  "Internal Cyberware",
+  "External Cyberware",
+  "Cyberlimbs",
+  "Borgware",
+] as const;
 
 export const SKILL_SECTIONS = [
   {
@@ -236,8 +246,8 @@ export function createEmptyCharacterSheet(): CharacterSheet {
       penalty: "",
       notes: "",
     })),
-    cyberwareTypeRows: Array.from({ length: DEFAULT_CYBERWARE_TYPE_ROW_COUNT }, () => ({
-      name: "",
+    cyberwareTypeRows: Array.from({ length: DEFAULT_CYBERWARE_TYPE_ROW_COUNT }, (_, index) => ({
+      name: DEFAULT_CYBERWARE_TYPES[index] ?? "",
       optionSlots: "",
       foundation: "",
       hl: "0",
