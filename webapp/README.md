@@ -57,3 +57,23 @@ npm run build
 Ensure `DATABASE_URL` is configured in Vercel for Development, Preview, and Production.
 
 Run `npm run db:migrate` against each Neon branch before using the app in that environment.
+
+## Deploy on Netlify
+
+This repository includes a root Netlify configuration file at `../netlify.toml`.
+
+When creating the Netlify site from GitHub, use these values:
+
+- Base directory: `webapp`
+- Build command: `npm run build`
+- Publish directory: `.next`
+
+Environment variables in Netlify should include `DATABASE_URL` for each context:
+
+- Production: Neon main branch URL
+- Deploy Previews: Neon preview branch URL
+- Branch Deploys/Local: Neon dev branch URL
+
+After setting environment variables, trigger a deploy and verify sign in, admin/member pages, and API routes.
+
+Run `npm run db:migrate` against each Neon branch before using the app in that environment.
