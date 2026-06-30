@@ -495,3 +495,69 @@ export async function updateMemberSheetByUsername(
 
   return toPublicUser(mapUserRow(rows[0]));
 }
+
+export async function updateAccountCredentials(input: {
+  currentUsername: string;
+  currentPassword: string;
+  newUsername?: string;
+  newPassword?: string;
+}): Promise<PublicUser> {
+  await ensureSchema();
+
+  const currentUsername = input.currentUsername.trim();
+  const currentPassword = input.currentPassword;
+  const nextUsername = input.newUsername?.trim();
+  const nextPassword = input.newPassword;
+
+  if (!currentUsername || !currentPassword) {
+    throw new Error("Current username and password are required.");
+  }
+
+  if (!nextUsername && !nextPassword) {
+    throw new Error("Provide a new username or password.");
+  }
+
+  if (nextPassword && nextPassword.trim().length < 6) {
+    throw new Error("New password must be at least 6 characters.");
+  }
+
+  const verifiedUser = await findUserByCredentials(currentUsername, currentPassword);
+  if (!verifiedUser) {
+    throw new Error("Current password is incorrect.");
+  }
+
+  const shouldUpdateUsername =
+    Boolean(nextUsername) && normalizeUsername(nextUsername ?? "") !== normalizeUsername(verifiedUser.username);
+
+  if (shouldUpdateUsername) {
+    const usernameTaken = await query<{ exists: boolean }>(
+      "SELECT EXISTS(SELECT 1 FROM users WHERE lower(username) = $1 AND id <> $2) AS exists",
+      [normalizeUsername(nextUsername ?? ""), verifiedUser.id],
+    );
+
+    if (usernameTaken[0]?.exists) {
+      throw new Error("Username is already taken.");
+    }
+  }
+
+  const updatedRows = await query<UserRow>(
+    `UPDATE users
+     SET
+       username = COALESCE($2, username),
+       password = COALESCE($3, password),
+       last_active = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [
+      verifiedUser.id,
+      shouldUpdateUsername ? nextUsername : null,
+      nextPassword && nextPassword.trim().length > 0 ? nextPassword : null,
+    ],
+  );
+
+  if (!updatedRows[0]) {
+    throw new Error("Unable to update account.");
+  }
+
+  return toPublicUser(mapUserRow(updatedRows[0]));
+}

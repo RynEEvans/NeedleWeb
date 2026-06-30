@@ -87,6 +87,13 @@ export default function GlobalAuthMenu() {
             >
               Skills
             </Link>
+            <Link
+              href="/settings"
+              onClick={() => setOpen(false)}
+              className="block rounded-xl px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100"
+            >
+              Settings
+            </Link>
 
             <div className="my-1 h-px bg-slate-200" />
             <button

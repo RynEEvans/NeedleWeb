@@ -4,6 +4,7 @@ import { IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import DiceRollerBubble from "./dice-roller-bubble";
 import GlobalAuthMenu from "./global-auth-menu";
+import MessageToastNotifier from "./message-toast-notifier";
 import { readSessionClaims, SESSION_COOKIE_NAME } from "@/lib/admin-auth";
 import { getConversationSummariesForAdmin, getUnreadCountForUser } from "@/lib/messages";
 
@@ -49,6 +50,9 @@ export default async function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         {sessionClaims ? <GlobalAuthMenu /> : null}
+        {sessionClaims && (sessionClaims.role === "Admin" || sessionClaims.role === "Member") ? (
+          <MessageToastNotifier />
+        ) : null}
         {children}
         {sessionClaims && (sessionClaims.role === "Admin" || sessionClaims.role === "Member") ? (
           <DiceRollerBubble

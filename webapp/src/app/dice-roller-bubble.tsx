@@ -5,7 +5,9 @@ import MessagesClient from "./messages/messages-client";
 
 type RollState = {
   die: "d10" | "d6";
-  value: number;
+  values: number[];
+  total: number;
+  count: number;
 };
 
 type Props = {
@@ -22,7 +24,12 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
   const [open, setOpen] = useState(false);
   const [rollerOpen, setRollerOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
+  const [rollCount, setRollCount] = useState(1);
   const [lastRoll, setLastRoll] = useState<RollState | null>(null);
+  const [messageTargets, setMessageTargets] = useState<string[]>([]);
+  const [sendTarget, setSendTarget] = useState("__group__");
+  const [sendingRoll, setSendingRoll] = useState(false);
+  const [sendRollStatus, setSendRollStatus] = useState<string | null>(null);
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
@@ -35,6 +42,39 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadTargets() {
+      try {
+        const response = await fetch("/api/messages/participants", { cache: "no-store" });
+        const data = (await response.json()) as { participants?: string[]; error?: string };
+
+        if (!response.ok) {
+          throw new Error(data.error ?? "Unable to load message targets.");
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        setMessageTargets(data.participants ?? []);
+      } catch {
+        if (cancelled) {
+          return;
+        }
+
+        setMessageTargets([]);
+      }
+    }
+
+    void loadTargets();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   function toggleOpen() {
     setOpen((current) => !current);
     if (open) {
@@ -43,8 +83,45 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
   }
 
   function handleRoll(sides: 10 | 6) {
-    const value = roll(sides);
-    setLastRoll({ die: sides === 10 ? "d10" : "d6", value });
+    const values = Array.from({ length: rollCount }, () => roll(sides));
+    const total = values.reduce((sum, value) => sum + value, 0);
+    setLastRoll({ die: sides === 10 ? "d10" : "d6", values, total, count: rollCount });
+    setSendRollStatus(null);
+  }
+
+  async function sendRollToMessages() {
+    if (!lastRoll || sendingRoll || !sendTarget) {
+      return;
+    }
+
+    setSendingRoll(true);
+    setSendRollStatus(null);
+
+    const body = `${username} rolled ${lastRoll.count}${lastRoll.die.toUpperCase()}: [${lastRoll.values.join(", ")}] | Total: ${lastRoll.total}`;
+
+    try {
+      const response = await fetch("/api/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          to: sendTarget,
+          body,
+        }),
+      });
+
+      const data = (await response.json()) as { error?: string };
+      if (!response.ok) {
+        throw new Error(data.error ?? "Unable to send roll to messages.");
+      }
+
+      setSendRollStatus(sendTarget === "__group__" ? "Sent to group messages." : `Sent to ${sendTarget}.`);
+    } catch (error) {
+      setSendRollStatus(error instanceof Error ? error.message : "Unable to send roll to messages.");
+    } finally {
+      setSendingRoll(false);
+    }
   }
 
   return (
@@ -63,11 +140,12 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
 
       <div
         className={`absolute bottom-full right-0 mb-3 flex flex-col items-end gap-2 transition-all duration-200 ${open ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}
+        style={{ zIndex: 51 }}
       >
           <button
             type="button"
             onClick={() => setRollerOpen((current) => !current)}
-            className="touch-manipulation rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100 active:scale-[0.98]"
+            className="touch-manipulation relative z-[51] rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100 active:scale-[0.98]"
           >
             Dice
           </button>
@@ -78,7 +156,7 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
               setOpen(false);
               setRollerOpen(false);
             }}
-            className="flex items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100"
+            className="relative z-[51] flex items-center gap-2 rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100"
           >
             <span>Messages</span>
             {unreadMessagesCount > 0 ? (
@@ -123,28 +201,81 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
           </p>
+          <div className="mt-2 flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">Dice count</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setRollCount((current) => Math.max(1, current - 1))}
+                className="h-7 w-7 rounded-md border border-slate-900 text-sm font-bold text-slate-900"
+                aria-label="Decrease dice count"
+              >
+                -
+              </button>
+              <span className="w-8 text-center text-sm font-semibold text-slate-900">{rollCount}</span>
+              <button
+                type="button"
+                onClick={() => setRollCount((current) => Math.min(20, current + 1))}
+                className="h-7 w-7 rounded-md border border-slate-900 text-sm font-bold text-slate-900"
+                aria-label="Increase dice count"
+              >
+                +
+              </button>
+            </div>
+          </div>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleRoll(10)}
               className="touch-manipulation rounded-lg border border-slate-900 bg-slate-100 px-2 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 active:scale-[0.98]"
             >
-              Roll d10
+              Roll d10 x{rollCount}
             </button>
             <button
               type="button"
               onClick={() => handleRoll(6)}
               className="touch-manipulation rounded-lg border border-slate-900 bg-slate-100 px-2 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 active:scale-[0.98]"
             >
-              Roll d6
+              Roll d6 x{rollCount}
             </button>
           </div>
           <div className="mt-3 rounded-lg border border-blue-900/20 bg-blue-50 px-2 py-2 text-sm">
             {lastRoll ? (
-              <p>
-                <span className="font-semibold text-blue-900">{lastRoll.die.toUpperCase()}</span>{" "}
-                result: <span className="font-bold text-slate-900">{lastRoll.value}</span>
-              </p>
+              <div className="space-y-1">
+                <p>
+                  <span className="font-semibold text-blue-900">{lastRoll.die.toUpperCase()} x{lastRoll.count}</span>
+                </p>
+                <p className="text-slate-700">Rolls: {lastRoll.values.join(", ")}</p>
+                <p>
+                  Total: <span className="font-bold text-slate-900">{lastRoll.total}</span>
+                </p>
+                <div className="mt-1 space-y-1">
+                  <label className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
+                    Send to
+                  </label>
+                  <select
+                    value={sendTarget}
+                    onChange={(event) => setSendTarget(event.target.value)}
+                    className="h-8 w-full rounded-md border border-slate-900 bg-white px-2 text-xs outline-none"
+                  >
+                    <option value="__group__">Group Chat</option>
+                    {messageTargets.map((target) => (
+                      <option key={`mobile-target-${target}`} value={target}>
+                        {target}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void sendRollToMessages()}
+                  disabled={sendingRoll || !sendTarget}
+                  className="mt-1 rounded-md border border-blue-900 bg-white px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-blue-900 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {sendingRoll ? "Sending..." : "Send to Messages"}
+                </button>
+                {sendRollStatus ? <p className="text-[11px] text-slate-700">{sendRollStatus}</p> : null}
+              </div>
             ) : (
               <p className="text-slate-600">Tap a die to roll.</p>
             )}
@@ -157,28 +288,81 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
           </p>
+          <div className="mt-2 flex items-center justify-between gap-2 rounded-lg border border-slate-200 bg-slate-50 px-2 py-2">
+            <span className="text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-600">Count</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setRollCount((current) => Math.max(1, current - 1))}
+                className="h-7 w-7 rounded-md border border-slate-900 text-sm font-bold text-slate-900"
+                aria-label="Decrease dice count"
+              >
+                -
+              </button>
+              <span className="w-8 text-center text-sm font-semibold text-slate-900">{rollCount}</span>
+              <button
+                type="button"
+                onClick={() => setRollCount((current) => Math.min(20, current + 1))}
+                className="h-7 w-7 rounded-md border border-slate-900 text-sm font-bold text-slate-900"
+                aria-label="Increase dice count"
+              >
+                +
+              </button>
+            </div>
+          </div>
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleRoll(10)}
               className="touch-manipulation rounded-lg border border-slate-900 bg-slate-100 px-2 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 active:scale-[0.98]"
             >
-              Roll d10
+              Roll d10 x{rollCount}
             </button>
             <button
               type="button"
               onClick={() => handleRoll(6)}
               className="touch-manipulation rounded-lg border border-slate-900 bg-slate-100 px-2 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 active:scale-[0.98]"
             >
-              Roll d6
+              Roll d6 x{rollCount}
             </button>
           </div>
           <div className="mt-3 rounded-lg border border-blue-900/20 bg-blue-50 px-2 py-2 text-sm">
             {lastRoll ? (
-              <p>
-                <span className="font-semibold text-blue-900">{lastRoll.die.toUpperCase()}</span>{" "}
-                result: <span className="font-bold text-slate-900">{lastRoll.value}</span>
-              </p>
+              <div className="space-y-1">
+                <p>
+                  <span className="font-semibold text-blue-900">{lastRoll.die.toUpperCase()} x{lastRoll.count}</span>
+                </p>
+                <p className="text-slate-700">Rolls: {lastRoll.values.join(", ")}</p>
+                <p>
+                  Total: <span className="font-bold text-slate-900">{lastRoll.total}</span>
+                </p>
+                <div className="mt-1 space-y-1">
+                  <label className="block text-[10px] font-semibold uppercase tracking-[0.1em] text-slate-600">
+                    Send to
+                  </label>
+                  <select
+                    value={sendTarget}
+                    onChange={(event) => setSendTarget(event.target.value)}
+                    className="h-8 w-full rounded-md border border-slate-900 bg-white px-2 text-xs outline-none"
+                  >
+                    <option value="__group__">Group Chat</option>
+                    {messageTargets.map((target) => (
+                      <option key={`desktop-target-${target}`} value={target}>
+                        {target}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => void sendRollToMessages()}
+                  disabled={sendingRoll || !sendTarget}
+                  className="mt-1 rounded-md border border-blue-900 bg-white px-2 py-1 text-[11px] font-semibold uppercase tracking-[0.08em] text-blue-900 hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-70"
+                >
+                  {sendingRoll ? "Sending..." : "Send to Messages"}
+                </button>
+                {sendRollStatus ? <p className="text-[11px] text-slate-700">{sendRollStatus}</p> : null}
+              </div>
             ) : (
               <p className="text-slate-600">Click a die to roll.</p>
             )}
@@ -189,7 +373,7 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
       <button
         type="button"
         onClick={toggleOpen}
-        className="touch-manipulation flex h-12 w-12 items-center justify-center rounded-full border-2 border-slate-900 bg-white text-xl font-bold text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:bg-slate-100 active:scale-[0.98]"
+        className="touch-manipulation relative z-[51] flex h-12 w-12 items-center justify-center rounded-full border-2 border-slate-900 bg-white text-xl font-bold text-slate-900 shadow-[0_12px_28px_rgba(15,23,42,0.28)] transition hover:-translate-y-0.5 hover:bg-slate-100 active:scale-[0.98]"
         aria-expanded={open}
         aria-label="Toggle quick actions"
       >
