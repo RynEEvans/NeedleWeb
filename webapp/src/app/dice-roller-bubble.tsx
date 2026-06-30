@@ -4,6 +4,13 @@ import { useEffect, useState } from "react";
 import MessagesClient from "./messages/messages-client";
 
 const OPEN_MESSAGES_MODAL_EVENT = "needleweb:open-messages-modal";
+const OPEN_DICE_ROLLER_EVENT = "needleweb:open-dice-roller";
+
+type OpenDiceRollerEventDetail = {
+  count?: number;
+  sides?: 6 | 10;
+  autoRoll?: boolean;
+};
 
 type RollState = {
   die: "d10" | "d6";
@@ -40,6 +47,13 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
   const [hasNewAllChatMessage, setHasNewAllChatMessage] = useState(false);
   const [lastSeenAllChatId, setLastSeenAllChatId] = useState<number | null>(null);
 
+  function runRoll(sides: 10 | 6, count: number) {
+    const values = Array.from({ length: count }, () => roll(sides));
+    const total = values.reduce((sum, value) => sum + value, 0);
+    setLastRoll({ die: sides === 10 ? "d10" : "d6", values, total, count });
+    setSendRollStatus(null);
+  }
+
   async function syncAllChatSeen() {
     try {
       const response = await fetch("/api/messages?with=__group__", { cache: "no-store" });
@@ -71,11 +85,33 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
       void syncAllChatSeen();
     }
 
+    function onOpenDiceRoller(event: Event) {
+      const customEvent = event as CustomEvent<OpenDiceRollerEventDetail>;
+      const nextCount =
+        customEvent.detail?.count && customEvent.detail.count > 0
+          ? Math.min(20, customEvent.detail.count)
+          : 1;
+      const nextSides = customEvent.detail?.sides === 10 ? 10 : 6;
+      const shouldAutoRoll = customEvent.detail?.autoRoll ?? false;
+
+      setRollCount(nextCount);
+  setLastRoll(null);
+  setSendRollStatus(null);
+      setRollerOpen(true);
+      setOpen(false);
+
+      if (shouldAutoRoll) {
+        runRoll(nextSides, nextCount);
+      }
+    }
+
     window.addEventListener("keydown", onKeyDown);
     window.addEventListener(OPEN_MESSAGES_MODAL_EVENT, onOpenMessagesModal);
+    window.addEventListener(OPEN_DICE_ROLLER_EVENT, onOpenDiceRoller as EventListener);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       window.removeEventListener(OPEN_MESSAGES_MODAL_EVENT, onOpenMessagesModal);
+      window.removeEventListener(OPEN_DICE_ROLLER_EVENT, onOpenDiceRoller as EventListener);
     };
   }, []);
 
@@ -169,10 +205,7 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
   }
 
   function handleRoll(sides: 10 | 6) {
-    const values = Array.from({ length: rollCount }, () => roll(sides));
-    const total = values.reduce((sum, value) => sum + value, 0);
-    setLastRoll({ die: sides === 10 ? "d10" : "d6", values, total, count: rollCount });
-    setSendRollStatus(null);
+    runRoll(sides, rollCount);
   }
 
   async function sendRollToMessages() {
@@ -230,7 +263,16 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
       >
           <button
             type="button"
-            onClick={() => setRollerOpen((current) => !current)}
+            onClick={() => {
+              setRollerOpen((current) => {
+                const nextOpen = !current;
+                if (nextOpen) {
+                  setLastRoll(null);
+                  setSendRollStatus(null);
+                }
+                return nextOpen;
+              });
+            }}
             className="touch-manipulation relative z-[51] rounded-full border border-slate-900 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-slate-900 shadow-[0_10px_20px_rgba(2,6,23,0.22)] transition hover:bg-slate-100 active:scale-[0.98]"
           >
             Dice
@@ -289,7 +331,19 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
       ) : null}
 
       {rollerOpen ? (
-        <div className="fixed inset-x-3 z-50 rounded-2xl border border-slate-900/15 bg-white p-4 shadow-[0_20px_45px_rgba(2,6,23,0.28)] sm:hidden" style={{ bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)" }}>
+        <div
+          className="fixed inset-0 z-[45] bg-transparent"
+          onClick={() => setRollerOpen(false)}
+          aria-hidden="true"
+        />
+      ) : null}
+
+      {rollerOpen ? (
+        <div
+          className="fixed inset-x-3 z-50 rounded-2xl border border-slate-900/15 bg-white p-4 shadow-[0_20px_45px_rgba(2,6,23,0.28)] sm:hidden"
+          style={{ bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)" }}
+          onClick={(event) => event.stopPropagation()}
+        >
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
           </p>
@@ -376,7 +430,10 @@ export default function DiceRollerBubble({ unreadMessagesCount = 0, role, userna
       ) : null}
 
       {rollerOpen ? (
-        <div className="absolute bottom-full right-0 mb-3 hidden w-60 max-w-[80vw] rounded-2xl border border-slate-900/15 bg-white/95 p-3 shadow-[0_16px_40px_rgba(2,6,23,0.25)] backdrop-blur sm:block">
+        <div
+          className="absolute bottom-full right-0 z-50 mb-3 hidden w-60 max-w-[80vw] rounded-2xl border border-slate-900/15 bg-white/95 p-3 shadow-[0_16px_40px_rgba(2,6,23,0.25)] backdrop-blur sm:block"
+          onClick={(event) => event.stopPropagation()}
+        >
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
           </p>

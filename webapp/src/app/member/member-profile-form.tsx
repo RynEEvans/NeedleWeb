@@ -18,6 +18,8 @@ import {
 import skillDescriptionsData from "@/lib/skill-descriptions.json";
 import weaponsCatalogData from "@/lib/weapons.json";
 
+const OPEN_DICE_ROLLER_EVENT = "needleweb:open-dice-roller";
+
 type MemberProfile = {
   id: number;
   username: string;
@@ -981,16 +983,30 @@ export default function MemberProfileForm({
   }
 
   function updateWeaponRow(index: number, field: keyof CharacterSheet["weaponRows"][number], value: string) {
-    if (!canOverrideReadOnly) {
+    return;
+  }
+
+  function openDiceFromDamageValue(value: string) {
+    const damageMatch = value.trim().match(/(\d+)\s*d\s*(6|10)/i);
+    if (!damageMatch) {
       return;
     }
 
-    setSheet((current) => ({
-      ...current,
-      weaponRows: current.weaponRows.map((row, rowIndex) =>
-        rowIndex === index ? { ...row, [field]: value } : row,
-      ),
-    }));
+    const count = Number.parseInt(damageMatch[1], 10);
+    const sides = Number.parseInt(damageMatch[2], 10) as 6 | 10;
+    if (!Number.isFinite(count) || (sides !== 6 && sides !== 10)) {
+      return;
+    }
+
+    window.dispatchEvent(
+      new CustomEvent(OPEN_DICE_ROLLER_EVENT, {
+        detail: {
+          count,
+          sides,
+          autoRoll: false,
+        },
+      }),
+    );
   }
 
   function updateArmorRow(index: number, field: keyof CharacterSheet["armorRows"][number], value: string) {
@@ -1822,31 +1838,37 @@ export default function MemberProfileForm({
                           <div className="grid grid-cols-2 gap-2">
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Weapon Name
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.name} onChange={(event) => updateWeaponRow(index, "name", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm" value={row.name} readOnly aria-readonly="true" tabIndex={-1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               DMG
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.dmg} onChange={(event) => updateWeaponRow(index, "dmg", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <button
+                                type="button"
+                                onClick={() => openDiceFromDamageValue(row.dmg)}
+                                className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-left text-sm text-slate-900 underline decoration-dotted underline-offset-2 hover:bg-blue-50"
+                              >
+                                {row.dmg || "-"}
+                              </button>
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               ROF
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.rof} onChange={(event) => updateWeaponRow(index, "rof", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm" value={row.rof} readOnly aria-readonly="true" tabIndex={-1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Hands
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.hands} onChange={(event) => updateWeaponRow(index, "hands", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm" value={row.hands} readOnly aria-readonly="true" tabIndex={-1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Con
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.con} onChange={(event) => updateWeaponRow(index, "con", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm" value={row.con} readOnly aria-readonly="true" tabIndex={-1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Mag
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.mag} onChange={(event) => updateWeaponRow(index, "mag", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm" value={row.mag} readOnly aria-readonly="true" tabIndex={-1} />
                             </label>
                             <label className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-600">
                               Ammo
-                              <input className={`mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 px-3 py-2 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.ammo} onChange={(event) => updateWeaponRow(index, "ammo", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                              <input className="mt-1 h-10 w-full min-w-0 rounded-md border border-slate-900 bg-slate-50 px-3 py-2 text-sm" value={row.ammo} readOnly aria-readonly="true" tabIndex={-1} />
                             </label>
                           </div>
                         </div>
@@ -1864,13 +1886,19 @@ export default function MemberProfileForm({
                       </div>
                       {sheet.weaponRows.map((row, index) => (
                         <div key={index} className="grid w-full grid-cols-[minmax(8rem,2.2fr)_minmax(2.5rem,0.7fr)_minmax(2.2rem,0.55fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)_minmax(2.5rem,0.7fr)] gap-2">
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.name} onChange={(event) => updateWeaponRow(index, "name", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.dmg} onChange={(event) => updateWeaponRow(index, "dmg", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.rof} onChange={(event) => updateWeaponRow(index, "rof", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.hands} onChange={(event) => updateWeaponRow(index, "hands", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.con} onChange={(event) => updateWeaponRow(index, "con", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.mag} onChange={(event) => updateWeaponRow(index, "mag", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
-                          <input className={`min-w-0 rounded-md border border-slate-900 px-2 py-1 text-sm ${canOverrideReadOnly ? "bg-white" : "bg-slate-50"}`} value={row.ammo} onChange={(event) => updateWeaponRow(index, "ammo", event.target.value)} readOnly={!canOverrideReadOnly} aria-readonly={!canOverrideReadOnly ? "true" : "false"} tabIndex={canOverrideReadOnly ? 0 : -1} />
+                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.name} readOnly aria-readonly="true" tabIndex={-1} />
+                          <button
+                            type="button"
+                            onClick={() => openDiceFromDamageValue(row.dmg)}
+                            className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-left text-sm text-slate-900 underline decoration-dotted underline-offset-2 hover:bg-blue-50"
+                          >
+                            {row.dmg || "-"}
+                          </button>
+                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.rof} readOnly aria-readonly="true" tabIndex={-1} />
+                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.hands} readOnly aria-readonly="true" tabIndex={-1} />
+                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.con} readOnly aria-readonly="true" tabIndex={-1} />
+                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.mag} readOnly aria-readonly="true" tabIndex={-1} />
+                          <input className="min-w-0 rounded-md border border-slate-900 bg-slate-50 px-2 py-1 text-sm" value={row.ammo} readOnly aria-readonly="true" tabIndex={-1} />
                         </div>
                       ))}
                     </div>
