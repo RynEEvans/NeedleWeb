@@ -2,8 +2,15 @@ import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { CharacterSheet, createEmptyCharacterSheet } from "@/lib/character-sheet";
 
-const USERS_DATA_PATH = join(process.cwd(), "data", "users.json");
-const SIGNUP_REQUESTS_DATA_PATH = join(process.cwd(), "data", "signup-requests.json");
+const SOURCE_DATA_DIR = join(process.cwd(), "data");
+const RUNTIME_DATA_DIR =
+  process.env.DATA_DIR?.trim() ||
+  (process.env.VERCEL ? join("/tmp", "needleweb-data") : SOURCE_DATA_DIR);
+
+const USERS_SOURCE_DATA_PATH = join(SOURCE_DATA_DIR, "users.json");
+const USERS_RUNTIME_DATA_PATH = join(RUNTIME_DATA_DIR, "users.json");
+const SIGNUP_REQUESTS_SOURCE_DATA_PATH = join(SOURCE_DATA_DIR, "signup-requests.json");
+const SIGNUP_REQUESTS_RUNTIME_DATA_PATH = join(RUNTIME_DATA_DIR, "signup-requests.json");
 
 export type UserRecord = {
   id: number;
@@ -36,15 +43,20 @@ export type SignupRequestRecord = {
 export type PublicSignupRequest = Omit<SignupRequestRecord, "password">;
 
 function loadUsers(): UserRecord[] {
-  try {
-    const fileContents = readFileSync(USERS_DATA_PATH, "utf8");
-    return JSON.parse(fileContents) as UserRecord[];
-  } catch {
-    const fallbackUsers = [] as UserRecord[];
-    mkdirSync(dirname(USERS_DATA_PATH), { recursive: true });
-    writeFileSync(USERS_DATA_PATH, JSON.stringify(fallbackUsers, null, 2), "utf8");
-    return fallbackUsers;
+  const candidates = Array.from(new Set([USERS_RUNTIME_DATA_PATH, USERS_SOURCE_DATA_PATH]));
+
+  for (const candidatePath of candidates) {
+    try {
+      const fileContents = readFileSync(candidatePath, "utf8");
+      return JSON.parse(fileContents) as UserRecord[];
+    } catch {
+      // Try the next candidate path.
+    }
   }
+
+  const fallbackUsers = [] as UserRecord[];
+  persistJsonFile(USERS_RUNTIME_DATA_PATH, fallbackUsers);
+  return fallbackUsers;
 }
 
 function readUsers(): UserRecord[] {
@@ -52,14 +64,30 @@ function readUsers(): UserRecord[] {
 }
 
 function loadSignupRequests(): SignupRequestRecord[] {
+  const candidates = Array.from(
+    new Set([SIGNUP_REQUESTS_RUNTIME_DATA_PATH, SIGNUP_REQUESTS_SOURCE_DATA_PATH]),
+  );
+
+  for (const candidatePath of candidates) {
+    try {
+      const fileContents = readFileSync(candidatePath, "utf8");
+      return JSON.parse(fileContents) as SignupRequestRecord[];
+    } catch {
+      // Try the next candidate path.
+    }
+  }
+
+  const fallbackRequests = [] as SignupRequestRecord[];
+  persistJsonFile(SIGNUP_REQUESTS_RUNTIME_DATA_PATH, fallbackRequests);
+  return fallbackRequests;
+}
+
+function persistJsonFile(path: string, data: unknown) {
   try {
-    const fileContents = readFileSync(SIGNUP_REQUESTS_DATA_PATH, "utf8");
-    return JSON.parse(fileContents) as SignupRequestRecord[];
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, JSON.stringify(data, null, 2), "utf8");
   } catch {
-    const fallbackRequests = [] as SignupRequestRecord[];
-    mkdirSync(dirname(SIGNUP_REQUESTS_DATA_PATH), { recursive: true });
-    writeFileSync(SIGNUP_REQUESTS_DATA_PATH, JSON.stringify(fallbackRequests, null, 2), "utf8");
-    return fallbackRequests;
+    // Avoid hard crashes when the deployment filesystem is read-only.
   }
 }
 
@@ -68,13 +96,11 @@ function readSignupRequests(): SignupRequestRecord[] {
 }
 
 function persistUsers() {
-  mkdirSync(dirname(USERS_DATA_PATH), { recursive: true });
-  writeFileSync(USERS_DATA_PATH, JSON.stringify(users, null, 2), "utf8");
+  persistJsonFile(USERS_RUNTIME_DATA_PATH, users);
 }
 
 function persistSignupRequests() {
-  mkdirSync(dirname(SIGNUP_REQUESTS_DATA_PATH), { recursive: true });
-  writeFileSync(SIGNUP_REQUESTS_DATA_PATH, JSON.stringify(signupRequests, null, 2), "utf8");
+  persistJsonFile(SIGNUP_REQUESTS_RUNTIME_DATA_PATH, signupRequests);
 }
 
 let users: UserRecord[] = loadUsers();
