@@ -503,7 +503,51 @@ export default function MemberProfileForm({
 
   const getHlTextSizeClass = (hl: string) => (hl.trim().length > 8 ? "text-xs" : "text-sm");
 
-  function handlePortraitUpload(event: ChangeEvent<HTMLInputElement>) {
+  async function fileToDataUrl(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          resolve(reader.result);
+          return;
+        }
+
+        reject(new Error("Unable to read image file."));
+      };
+      reader.onerror = () => reject(new Error("Unable to read image file."));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function optimizePortraitImage(file: File): Promise<string> {
+    const sourceDataUrl = await fileToDataUrl(file);
+
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const nextImage = new Image();
+      nextImage.onload = () => resolve(nextImage);
+      nextImage.onerror = () => reject(new Error("Unable to process image file."));
+      nextImage.src = sourceDataUrl;
+    });
+
+    const maxDimension = 1200;
+    const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+
+    const context = canvas.getContext("2d");
+    if (!context) {
+      return sourceDataUrl;
+    }
+
+    context.drawImage(image, 0, 0, width, height);
+    return canvas.toDataURL("image/jpeg", 0.82);
+  }
+
+  async function handlePortraitUpload(event: ChangeEvent<HTMLInputElement>) {
     if (!canEdit) {
       return;
     }
@@ -526,27 +570,17 @@ export default function MemberProfileForm({
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const result = reader.result;
-      if (typeof result !== "string") {
-        setError("Unable to read image file.");
-        return;
-      }
-
+    try {
+      const optimizedDataUrl = await optimizePortraitImage(file);
       setError(null);
       setSuccess("Portrait updated.");
       setSheet((current) => ({
         ...current,
-        portraitUrl: result,
+        portraitUrl: optimizedDataUrl,
       }));
-    };
-
-    reader.onerror = () => {
+    } catch {
       setError("Unable to read image file.");
-    };
-
-    reader.readAsDataURL(file);
+    }
   }
 
   function toggleLoadoutSection(section: keyof typeof showLoadoutSections) {
