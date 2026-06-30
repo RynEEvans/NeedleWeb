@@ -33,7 +33,45 @@ export default function DiceRollerBubble() {
       }}
     >
       {open ? (
-        <div className="mb-3 w-60 max-w-[80vw] rounded-2xl border border-slate-900/15 bg-white/95 p-3 shadow-[0_16px_40px_rgba(2,6,23,0.25)] backdrop-blur">
+        <div className="fixed inset-0 z-40 bg-black/20 sm:hidden" onClick={toggleOpen} aria-hidden="true" />
+      ) : null}
+
+      {open ? (
+        <div className="fixed inset-x-3 z-50 rounded-2xl border border-slate-900/15 bg-white p-4 shadow-[0_20px_45px_rgba(2,6,23,0.28)] sm:hidden" style={{ bottom: "calc(max(1rem, env(safe-area-inset-bottom)) + 4.5rem)" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
+            Dice Roller
+          </p>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => handleRoll(10)}
+              className="touch-manipulation rounded-lg border border-slate-900 bg-slate-100 px-2 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 active:scale-[0.98]"
+            >
+              Roll d10
+            </button>
+            <button
+              type="button"
+              onClick={() => handleRoll(6)}
+              className="touch-manipulation rounded-lg border border-slate-900 bg-slate-100 px-2 py-3 text-sm font-semibold text-slate-900 transition hover:bg-slate-200 active:scale-[0.98]"
+            >
+              Roll d6
+            </button>
+          </div>
+          <div className="mt-3 rounded-lg border border-teal-800/20 bg-teal-50 px-2 py-2 text-sm">
+            {lastRoll ? (
+              <p>
+                <span className="font-semibold text-teal-800">{lastRoll.die.toUpperCase()}</span>{" "}
+                result: <span className="font-bold text-slate-900">{lastRoll.value}</span>
+              </p>
+            ) : (
+              <p className="text-slate-600">Tap a die to roll.</p>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {open ? (
+        <div className="absolute bottom-full right-0 mb-3 hidden w-60 max-w-[80vw] rounded-2xl border border-slate-900/15 bg-white/95 p-3 shadow-[0_16px_40px_rgba(2,6,23,0.25)] backdrop-blur sm:block">
           <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-600">
             Dice Roller
           </p>
