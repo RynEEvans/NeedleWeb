@@ -23,24 +23,29 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const adminUser = await findAdminUser(username);
-  if (!adminUser || adminUser.password !== password) {
-    return NextResponse.json(
-      { error: "Invalid admin credentials." },
-      { status: 401 },
-    );
+  try {
+    const adminUser = await findAdminUser(username);
+    if (!adminUser || adminUser.password !== password) {
+      return NextResponse.json(
+        { error: "Invalid admin credentials." },
+        { status: 401 },
+      );
+    }
+
+    const response = NextResponse.json({ ok: true });
+    response.cookies.set({
+      name: SESSION_COOKIE_NAME,
+      value: createSessionToken(adminUser.username),
+      httpOnly: true,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: getSessionTtlSeconds(),
+    });
+
+    return response;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to sign in right now.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  const response = NextResponse.json({ ok: true });
-  response.cookies.set({
-    name: SESSION_COOKIE_NAME,
-    value: createSessionToken(adminUser.username),
-    httpOnly: true,
-    sameSite: "strict",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: getSessionTtlSeconds(),
-  });
-
-  return response;
 }

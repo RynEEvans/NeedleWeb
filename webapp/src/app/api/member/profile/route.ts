@@ -28,12 +28,17 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const user = await getPublicUserByUsername(claims.username);
-  if (!user) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  try {
+    const user = await getPublicUserByUsername(claims.username);
+    if (!user) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-  return NextResponse.json({ user });
+    return NextResponse.json({ user });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to load profile.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request) {
@@ -65,15 +70,20 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Invalid status." }, { status: 400 });
   }
 
-  const updatedUser = await updateMemberSheetByUsername(claims.username, {
-    email,
-    status,
-    sheet,
-  });
+  try {
+    const updatedUser = await updateMemberSheetByUsername(claims.username, {
+      email,
+      status,
+      sheet,
+    });
 
-  if (!updatedUser) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
+    if (!updatedUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ user: updatedUser });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to update profile.";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-
-  return NextResponse.json({ user: updatedUser });
 }

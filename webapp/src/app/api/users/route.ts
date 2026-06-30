@@ -12,7 +12,12 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  return NextResponse.json({ users: await getPublicUsers() });
+  try {
+    return NextResponse.json({ users: await getPublicUsers() });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to load users.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
 
 

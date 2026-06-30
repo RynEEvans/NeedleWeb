@@ -29,28 +29,33 @@ export async function PATCH(
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { username } = await params;
-  const targetUser = await findUserByUsername(username);
-  if (!targetUser) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+  try {
+    const { username } = await params;
+    const targetUser = await findUserByUsername(username);
+    if (!targetUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-  if (targetUser.role === "Admin") {
-    return NextResponse.json(
-      { error: "Admin accounts cannot be edited here." },
-      { status: 403 },
-    );
-  }
+    if (targetUser.role === "Admin") {
+      return NextResponse.json(
+        { error: "Admin accounts cannot be edited here." },
+        { status: 403 },
+      );
+    }
 
-  const body = (await request.json()) as SheetUpdateBody;
-  if (!body.sheet) {
-    return NextResponse.json({ error: "Sheet is required." }, { status: 400 });
-  }
+    const body = (await request.json()) as SheetUpdateBody;
+    if (!body.sheet) {
+      return NextResponse.json({ error: "Sheet is required." }, { status: 400 });
+    }
 
-  const updatedUser = await updateMemberSheetByUsername(username, { sheet: body.sheet });
-  if (!updatedUser) {
-    return NextResponse.json({ error: "User not found" }, { status: 404 });
-  }
+    const updatedUser = await updateMemberSheetByUsername(username, { sheet: body.sheet });
+    if (!updatedUser) {
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
+    }
 
-  return NextResponse.json({ user: updatedUser });
+    return NextResponse.json({ user: updatedUser });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to update user sheet.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }

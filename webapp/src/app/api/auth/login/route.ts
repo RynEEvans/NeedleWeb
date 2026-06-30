@@ -47,27 +47,32 @@ export async function POST(request: NextRequest) {
     return redirectWithError("Username and password are required.", 400);
   }
 
-  const user = await findUserByCredentials(username, password);
-  if (!user) {
-    return redirectWithError("Invalid credentials.", 401);
+  try {
+    const user = await findUserByCredentials(username, password);
+    if (!user) {
+      return redirectWithError("Invalid credentials.", 401);
+    }
+
+    if (user.role !== "Admin" && user.role !== "Member") {
+      return redirectWithError("This account cannot access the app dashboard.", 403);
+    }
+
+    const response = expectsRedirect
+      ? NextResponse.redirect(buildAbsoluteUrlFromRequest(request, user.role === "Admin" ? "/admin" : "/member"), 303)
+      : NextResponse.json({ ok: true, role: user.role });
+    response.cookies.set({
+      name: SESSION_COOKIE_NAME,
+      value: createSessionTokenWithRole(user.username, user.role),
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/",
+      maxAge: getSessionTtlSeconds(),
+    });
+
+    return response;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Unable to sign in right now.";
+    return redirectWithError(message, 500);
   }
-
-  if (user.role !== "Admin" && user.role !== "Member") {
-    return redirectWithError("This account cannot access the app dashboard.", 403);
-  }
-
-  const response = expectsRedirect
-    ? NextResponse.redirect(buildAbsoluteUrlFromRequest(request, user.role === "Admin" ? "/admin" : "/member"), 303)
-    : NextResponse.json({ ok: true, role: user.role });
-  response.cookies.set({
-    name: SESSION_COOKIE_NAME,
-    value: createSessionTokenWithRole(user.username, user.role),
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    path: "/",
-    maxAge: getSessionTtlSeconds(),
-  });
-
-  return response;
 }
